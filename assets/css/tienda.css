@@ -1,173 +1,248 @@
-/* ==============================
-   PALETA CAFÉ ARTESANAL
-   ==============================
-   Espresso #3E2C1B
-   Moca      #6B4F35
-   Caramelo  #D1A05A
-   Latte     #F5EAD6
-   Crema     #FFF9F2
-   ============================== */
-
 body {
     margin: 0;
     font-family: 'Poppins', sans-serif;
-    background-color: #f5ead6;
+    background: url('../img/coffee-texture.jpg') center/cover fixed;
+    background-blend-mode: multiply;
+    background-color: #f7efe2;
     color: #3e2c1b;
 }
-
-/* ===== Banner Superior ===== */
+/* ===============================
+🟤 BANNER PRINCIPAL
+================================= */
 .banner-tienda {
+    position: relative;
+    height: 80vh;
     background: url('../img/hero-cafe2.jpg') center/cover no-repeat fixed;
-    height: 60vh;
     display: flex;
     align-items: center;
     justify-content: center;
-    position: relative;
-    overflow: hidden;
-}
-
-.banner-tienda::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: rgba(30, 20, 10, 0.65);
-    -webkit-backdrop-filter: blur(2px);
-    backdrop-filter: blur(2px);
+    color: #fff;
+    text-align: center;
 }
 
 .banner-tienda .overlay {
-    position: relative;
-    text-align: center;
-    color: #fff9f2;
+    position: absolute;
+    inset: 0;
+    background: rgba(25, 15, 10, 0.5);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
     z-index: 2;
 }
 
 .banner-tienda h1 {
     font-size: 3rem;
-    font-weight: 700;
-    color: #d1a05a;
-    text-shadow: 0 3px 6px rgba(0, 0, 0, 0.4);
-    margin-bottom: 15px;
+    letter-spacing: 1.5px;
+    font-weight: 600;
+    text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.5);
 }
 
 .banner-tienda p {
-    font-size: 1.1rem;
-    color: #f8e6d0;
+    font-size: 1.2rem;
+    color: #f8efe2;
+    margin-top: 10px;
+    max-width: 600px;
 }
 
-/* ===== Fondo texturizado ===== */
+
+/* ===============================
+   ☕ FILTROS
+================================= */
+.filtros {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #3b2f2f;
+    padding: 20px;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.filtro-btn {
+    background-color: #d2a679;
+    border: none;
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 25px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.filtro-btn:hover,
+.filtro-btn.activo {
+    background-color: #8b5e3c;
+}
+
+/* ===============================
+   🧃 PRODUCTOS
+================================= */
 .tienda {
-    background: radial-gradient(circle at top left, #fff9f2 0%, #f3e3c8 80%);
-    padding: 60px 8%;
+    padding: 80px 5%;
+    background: url('../img/coffee-texture.jpg') center/cover fixed no-repeat;
+    color: #3b2f2f;
 }
 
-/* ===== Título ===== */
 .titulo-seccion {
     text-align: center;
-    font-size: 2.3rem;
-    color: #3e2c1b;
-    font-weight: 700;
-    margin-bottom: 50px;
-    position: relative;
+    font-size: 2.2rem;
+    font-weight: 600;
+    margin-bottom: 40px;
+    color: #3b2f2f;
 }
 
-.titulo-seccion::after {
-    content: "";
-    width: 80px;
-    height: 4px;
-    background-color: #d1a05a;
-    display: block;
-    margin: 10px auto 0;
-    border-radius: 2px;
-}
-
-/* ===== GRID DE PRODUCTOS ===== */
 .grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 35px;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 30px;
 }
 
-/* ===== TARJETAS ===== */
 .card {
-    background: #fff9f2;
-    border-radius: 14px;
-    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+    background-color: #fffaf5;
+    border-radius: 15px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     overflow: hidden;
-    transition: all 0.35s ease;
-    position: relative;
-}
-
-.card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    opacity: 0;
+    transform: translateY(30px);
 }
 
 .card img {
     width: 100%;
-    height: 230px;
+    height: 220px;
     object-fit: cover;
-    transition: transform 0.4s ease;
-}
-
-.card:hover img {
-    transform: scale(1.08);
 }
 
 .card .info {
-    padding: 18px;
-    text-align: center;
+    padding: 15px;
 }
 
 .card h3 {
-    margin: 10px 0 8px;
-    color: #3e2c1b;
-    font-weight: 600;
-    font-size: 1.2rem;
+    color: #3b2f2f;
+    margin-bottom: 8px;
 }
 
 .card p {
-    color: #6b4f35;
-    font-size: 0.95rem;
-    min-height: 45px;
+    color: #555;
+    font-size: 0.9rem;
+    margin-bottom: 10px;
 }
 
+.card .precio {
+    color: #b87333;
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
+.card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.25);
+}
+
+/* ===== Tarjetas ===== */
+.card {
+    background-color: #fff;
+    border-radius: 15px;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+.card:hover {
+    transform: translateY(-5px);
+}
+.card img {
+    width: 100%;
+    height: 220px;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+}
+.card:hover img {
+    transform: scale(1.05);
+}
+.card .info {
+    padding: 15px;
+    text-align: center;
+}
+.card h3 {
+    margin: 10px 0 5px;
+}
+.card p {
+    color: #6f4e37;
+    font-size: 14px;
+}
 .precio {
+    background-color: #d1a05a;
+    color: #fff;
+    padding: 7px 12px;
+    border-radius: 20px;
     display: inline-block;
     margin-top: 10px;
-    background-color: #d1a05a;
-    color: white;
-    font-weight: 600;
-    padding: 8px 14px;
-    border-radius: 25px;
-    font-size: 0.9rem;
-    transition: background-color 0.3s;
 }
 
-.precio:hover {
-    background-color: #b07b3a;
-}
-
-/* ===== Footer ===== */
-footer {
-    background-color: #3e2c1b;
-    color: #fff9f2;
-    text-align: center;
-    padding: 25px 0;
-    margin-top: 60px;
-    font-size: 0.9rem;
-}
-
-/* ===== Responsive ===== */
+/* ===== Responsivo ===== */
 @media (max-width: 768px) {
     .banner-tienda h1 {
-        font-size: 2.2rem;
+        font-size: 2rem;
     }
     .banner-tienda p {
         font-size: 1rem;
-        padding: 0 15px;
     }
     .card img {
-        height: 200px;
+        height: 190px;
     }
 }
+/* ===============================
+   🌅 SECCIÓN DE TRANSICIÓN
+================================= */
+.fondo-transicion {
+    position: relative;
+    height: 60vh;
+    background: url('../img/hero-cafe3.jpg') center/cover no-repeat fixed;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    margin: 0;
+    border-top: 3px solid rgba(90, 55, 30, 0.3);
+    border-bottom: 3px solid rgba(90, 55, 30, 0.3);
+}
+
+.fondo-transicion::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgba(20, 10, 5, 0.55);
+    -webkit-backdrop-filter: blur(3px);
+    backdrop-filter: blur(3px);
+}
+
+.fondo-transicion h2 {
+    position: relative;
+    color: #f8efe2;
+    font-size: 2.5rem;
+    font-weight: 600;
+    letter-spacing: 1.2px;
+    text-align: center;
+    opacity: 0;
+    transform: translateY(40px);
+    transition: all 1s ease;
+}
+
+
+/* Animación de aparición suave */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+
+
+

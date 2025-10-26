@@ -3,19 +3,20 @@ require_once("../config/db.php");
 global $pdo;
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
-session_start();
 ?>
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tienda | Chinos Café</title>
-    <link rel="stylesheet" href="../assets/css/tienda.css">
+    <link rel="stylesheet" href="../assets/css/tienda.css?v=<?php echo time(); ?>">
 </head>
 <body>
     <?php include("../includes/header.php"); ?>
 
+    <!-- 🟤 BANNER PRINCIPAL -->
     <section class="banner-tienda">
         <div class="overlay">
             <h1>Nuestra Tienda</h1>
@@ -23,9 +24,23 @@ session_start();
         </div>
     </section>
 
+    <!-- 🟤 FILTROS -->
+    <section class="filtros">
+        <button class="filtro-btn activo" data-categoria="todos">Todos</button>
+        <button class="filtro-btn" data-categoria="Bebida Caliente">Bebidas Calientes</button>
+        <button class="filtro-btn" data-categoria="Bebida Fría">Bebidas Frías</button>
+        <button class="filtro-btn" data-categoria="Postre">Postres</button>
+    </section>
+
+    <!-- 🌅 Sección de transición entre banner y productos -->
+    <section class="fondo-transicion">
+        <h2>Descubre Nuestros Sabores Artesanales</h2>
+    </section>
+
+    <!-- 🟤 PRODUCTOS -->
     <main class="tienda">
         <h2 class="titulo-seccion">Nuestros Productos</h2>
-        <div class="grid">
+        <div class="grid" id="productosGrid">
             <?php
             try {
                 $query = $pdo->query("SELECT * FROM productos");
@@ -41,7 +56,7 @@ session_start();
                             else $img = "../assets/img/default.jpg";
                         }
 
-                        echo "<div class='card'>";
+                        echo "<div class='card' data-categoria='{$row['categoria']}'>";
                         echo "<img src='$img' alt='{$row['nombre']}'>";
                         echo "<div class='info'>";
                         echo "<h3>{$row['nombre']}</h3>";
@@ -59,5 +74,7 @@ session_start();
     </main>
 
     <?php include("../includes/footer.php"); ?>
+
+    <script src="../assets/js/tienda.js"></script>
 </body>
 </html>
