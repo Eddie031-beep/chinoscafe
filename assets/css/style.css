@@ -1,0 +1,99 @@
+body {
+    margin: 0;
+    font-family: 'Poppins', sans-serif;
+    background-color: #f8f6f1;
+    color: #3b2f2f;
+}
+
+/* Navbar */
+.navbar {
+    background-color: #3b2f2f;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 40px;
+}
+.navbar a {
+    color: white;
+    text-decoration: none;
+    margin: 0 10px;
+}
+.navbar a:hover {
+    color: #d2a679;
+}
+.logo h1 {
+    display: inline-block;
+    margin-left: 10px;
+}
+
+/* Hero */
+.hero {
+    background: url('../img/hero-cafe.jpg') center/cover no-repeat;
+    height: 80vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    text-align: center;
+}
+.hero-content {
+    background: rgba(0, 0, 0, 0.5);
+    padding: 30px;
+    border-radius: 15px;
+}
+.btn {
+    background-color: #d2a679;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 20px;
+    text-decoration: none;
+}
+
+/* Productos */
+.productos {
+    padding: 50px;
+    text-align: center;
+}
+.productos .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+.card {
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    padding: 15px;
+}
+.card img {
+    width: 100%;
+    border-radius: 10px;
+}
+
+/* Contacto */
+.contacto {
+    background-color: #3b2f2f;
+    color: white;
+    padding: 50px;
+}
+.contacto form {
+    display: flex;
+    flex-direction: column;
+    max-width: 400px;
+    margin: auto;
+}
+.contacto input, .contacto textarea {
+    margin-bottom: 15px;
+    padding: 10px;
+    border: none;
+    border-radius: 8px;
+}
+.contacto button {
+    background-color: #d2a679;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+}
