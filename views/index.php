@@ -17,23 +17,37 @@
             <a href="#contacto" class="btn">Haz tu pedido</a>
         </div>
     </section>
+<section id="productos" class="productos">
+    <h2>Nuestros Productos</h2>
+    <div class="grid">
+        <?php
+        $query = $pdo->query("SELECT * FROM productos LIMIT 6");
+        while ($row = $query->fetch(PDO::FETCH_ASSOC)) {
+            $img = "../assets/img/" . $row['imagen'];
 
-    <section id="productos" class="productos">
-        <h2>Nuestros Productos</h2>
-        <div class="grid">
-            <?php
-            $query = $pdo->query("SELECT * FROM productos LIMIT 6");
-            while ($row = $query->fetch(PDO::FETCH_ASSOC)) {
-                echo "<div class='card'>";
-                echo "<img src='../assets/img/{$row['imagen']}' alt='{$row['nombre']}'>";
-                echo "<h3>{$row['nombre']}</h3>";
-                echo "<p>{$row['descripcion']}</p>";
-                echo "<span>\${$row['precio']}</span>";
-                echo "</div>";
+            // Si la imagen no existe, prueba con extensión alternativa
+            if (!file_exists($img)) {
+                $nombreBase = pathinfo($row['imagen'], PATHINFO_FILENAME);
+                if (file_exists("../assets/img/{$nombreBase}.jpg")) {
+                    $img = "../assets/img/{$nombreBase}.jpg";
+                } elseif (file_exists("../assets/img/{$nombreBase}.jpeg")) {
+                    $img = "../assets/img/{$nombreBase}.jpeg";
+                } else {
+                    $img = "../assets/img/default.jpg"; // imagen de respaldo
+                }
             }
-            ?>
-        </div>
-    </section>
+
+            echo "<div class='card'>";
+            echo "<img src='$img' alt='{$row['nombre']}'>";
+            echo "<h3>{$row['nombre']}</h3>";
+            echo "<p>{$row['descripcion']}</p>";
+            echo "<span>\${$row['precio']}</span>";
+            echo "</div>";
+        }
+        ?>
+    </div>
+</section>
+
 
     <section id="contacto" class="contacto">
         <h2>Contáctanos</h2>
