@@ -1,248 +1,172 @@
+/* ======================
+🎨 Paleta café natural
+====================== */
+:root {
+    --cafe-oscuro: #3b2f2f;
+    --cafe-medio: #8b5e3c;
+    --cafe-claro: #d2a679;
+    --crema: #f8efe2;
+    --blanco: #fff;
+    --sombra: rgba(0,0,0,0.15);
+}
+
 body {
     margin: 0;
     font-family: 'Poppins', sans-serif;
-    background: url('../img/coffee-texture.jpg') center/cover fixed;
-    background-blend-mode: multiply;
-    background-color: #f7efe2;
-    color: #3e2c1b;
+    background-color: var(--crema);
+    color: var(--cafe-oscuro);
 }
-/* ===============================
-🟤 BANNER PRINCIPAL
-================================= */
-.banner-tienda {
-    position: relative;
-    height: 80vh;
+
+/* ======================
+🟤 Hero principal
+====================== */
+.hero-tienda {
     background: url('../img/hero-cafe2.jpg') center/cover no-repeat fixed;
+    height: 90vh;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #fff;
     text-align: center;
+    position: relative;
+    color: var(--blanco);
 }
 
-.banner-tienda .overlay {
+.hero-tienda::after {
+    content: "";
     position: absolute;
     inset: 0;
-    background: rgba(25, 15, 10, 0.5);
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    padding: 20px;
+    background: rgba(0,0,0,0.45);
+}
+
+.contenido-hero {
+    position: relative;
     z-index: 2;
+    max-width: 700px;
+    padding: 20px;
 }
 
-.banner-tienda h1 {
+.contenido-hero h1 {
     font-size: 3rem;
-    letter-spacing: 1.5px;
-    font-weight: 600;
-    text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.5);
+    margin-bottom: 15px;
 }
 
-.banner-tienda p {
+.contenido-hero p {
     font-size: 1.2rem;
-    color: #f8efe2;
-    margin-top: 10px;
-    max-width: 600px;
+    color: var(--crema);
 }
 
+.btn-hero {
+    display: inline-block;
+    margin-top: 20px;
+    background: var(--cafe-claro);
+    color: var(--blanco);
+    padding: 12px 25px;
+    border-radius: 25px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: background 0.3s ease;
+}
+.btn-hero:hover {
+    background: var(--cafe-medio);
+}
 
-/* ===============================
-   ☕ FILTROS
-================================= */
+/* ======================
+☕ Filtros
+====================== */
 .filtros {
     display: flex;
     justify-content: center;
-    align-items: center;
-    background-color: #3b2f2f;
-    padding: 20px;
-    gap: 15px;
     flex-wrap: wrap;
+    gap: 15px;
+    padding: 25px;
+    background: var(--cafe-oscuro);
 }
 
 .filtro-btn {
-    background-color: #d2a679;
+    background: var(--cafe-claro);
     border: none;
-    color: #fff;
+    color: var(--blanco);
     padding: 10px 20px;
-    border-radius: 25px;
-    font-weight: 500;
+    border-radius: 20px;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: background 0.3s;
 }
 
 .filtro-btn:hover,
 .filtro-btn.activo {
-    background-color: #8b5e3c;
+    background: var(--cafe-medio);
 }
 
-/* ===============================
-   🧃 PRODUCTOS
-================================= */
-.tienda {
-    padding: 80px 5%;
-    background: url('../img/coffee-texture.jpg') center/cover fixed no-repeat;
-    color: #3b2f2f;
+/* ======================
+🧁 Productos
+====================== */
+.productos {
+    padding: 60px 8%;
 }
 
 .titulo-seccion {
     text-align: center;
-    font-size: 2.2rem;
-    font-weight: 600;
+    font-size: 2rem;
+    color: var(--cafe-oscuro);
     margin-bottom: 40px;
-    color: #3b2f2f;
 }
 
 .grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 30px;
+    gap: 25px;
 }
 
 .card {
-    background-color: #fffaf5;
+    background: var(--blanco);
     border-radius: 15px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 5px 15px var(--sombra);
     overflow: hidden;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
-    opacity: 0;
-    transform: translateY(30px);
-}
-
-.card img {
-    width: 100%;
-    height: 220px;
-    object-fit: cover;
-}
-
-.card .info {
-    padding: 15px;
-}
-
-.card h3 {
-    color: #3b2f2f;
-    margin-bottom: 8px;
-}
-
-.card p {
-    color: #555;
-    font-size: 0.9rem;
-    margin-bottom: 10px;
-}
-
-.card .precio {
-    color: #b87333;
-    font-weight: bold;
-    font-size: 1.1rem;
 }
 
 .card:hover {
-    transform: translateY(-10px);
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.25);
+    transform: translateY(-8px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.25);
 }
 
-/* ===== Tarjetas ===== */
-.card {
-    background-color: #fff;
-    border-radius: 15px;
-    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+.img-container {
+    height: 220px;
     overflow: hidden;
-    transition: all 0.3s ease;
 }
-.card:hover {
-    transform: translateY(-5px);
-}
-.card img {
+
+.img-container img {
     width: 100%;
-    height: 220px;
+    height: 100%;
     object-fit: cover;
     transition: transform 0.4s ease;
 }
+
 .card:hover img {
-    transform: scale(1.05);
+    transform: scale(1.08);
 }
-.card .info {
+
+.info {
     padding: 15px;
     text-align: center;
 }
-.card h3 {
+
+.info h3 {
     margin: 10px 0 5px;
+    color: var(--cafe-oscuro);
 }
-.card p {
-    color: #6f4e37;
-    font-size: 14px;
+
+.info p {
+    font-size: 0.9rem;
+    color: #555;
 }
+
 .precio {
-    background-color: #d1a05a;
-    color: #fff;
+    background: var(--cafe-claro);
+    color: var(--blanco);
     padding: 7px 12px;
-    border-radius: 20px;
+    border-radius: 25px;
     display: inline-block;
     margin-top: 10px;
+    font-weight: bold;
 }
-
-/* ===== Responsivo ===== */
-@media (max-width: 768px) {
-    .banner-tienda h1 {
-        font-size: 2rem;
-    }
-    .banner-tienda p {
-        font-size: 1rem;
-    }
-    .card img {
-        height: 190px;
-    }
-}
-/* ===============================
-   🌅 SECCIÓN DE TRANSICIÓN
-================================= */
-.fondo-transicion {
-    position: relative;
-    height: 60vh;
-    background: url('../img/hero-cafe3.jpg') center/cover no-repeat fixed;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-    margin: 0;
-    border-top: 3px solid rgba(90, 55, 30, 0.3);
-    border-bottom: 3px solid rgba(90, 55, 30, 0.3);
-}
-
-.fondo-transicion::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: rgba(20, 10, 5, 0.55);
-    -webkit-backdrop-filter: blur(3px);
-    backdrop-filter: blur(3px);
-}
-
-.fondo-transicion h2 {
-    position: relative;
-    color: #f8efe2;
-    font-size: 2.5rem;
-    font-weight: 600;
-    letter-spacing: 1.2px;
-    text-align: center;
-    opacity: 0;
-    transform: translateY(40px);
-    transition: all 1s ease;
-}
-
-
-/* Animación de aparición suave */
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-
-
-
