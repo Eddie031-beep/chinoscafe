@@ -3,7 +3,7 @@ $host = 'localhost';
 $db   = 'chinoscafe_db';
 $user = 'root';
 $pass = '';
-$port = '3307';
+$port = '3306';
 
 try {
     $pdo = new PDO("mysql:host=$host;dbname=$db;charset=utf8", $user, $pass);

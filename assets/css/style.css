@@ -5,27 +5,64 @@ body {
     color: #3b2f2f;
 }
 
-/* Navbar */
+/* ===== NAVBAR ===== */
 .navbar {
-    background-color: #3b2f2f;
-    color: white;
+    background-color: #2f1b0c; /* color café oscuro */
+    color: #fff;
+    padding: 10px 0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.navbar .container {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 15px 40px;
+    width: 90%;
+    margin: 0 auto;
 }
-.navbar a {
-    color: white;
+
+/* LOGO */
+.logo {
+    display: flex;
+    align-items: center;
     text-decoration: none;
-    margin: 0 10px;
+    color: #fff;
+    font-family: "Poppins", sans-serif;
+    font-weight: 600;
+    font-size: 1.4em;
 }
-.navbar a:hover {
-    color: #d2a679;
+
+.logo img {
+    width: 60px;           /* ✅ tamaño controlado */
+    height: 60px;
+    margin-right: 10px;
+    border-radius: 50%;
+    object-fit: contain;
 }
-.logo h1 {
-    display: inline-block;
-    margin-left: 10px;
+
+/* MENÚ */
+.menu ul {
+    list-style: none;
+    display: flex;
+    gap: 25px;
+    margin: 0;
+    padding: 0;
 }
+
+.menu a {
+    text-decoration: none;
+    color: #fff;
+    font-weight: 500;
+    transition: color 0.3s;
+}
+
+.menu a:hover {
+    color: #d4a373; /* tono café claro */
+}
+
 
 /* Hero */
 .hero {
@@ -97,3 +134,131 @@ body {
     border-radius: 8px;
     cursor: pointer;
 }
+
+----------------------------------Imagenes de los productos ----------------------------------
+.card img {
+    width: 100%;
+    height: 220px;
+    object-fit: cover;
+    border-radius: 10px;
+}
+.card h3 {
+    margin-top: 10px;
+    color: #3b2f2f;
+}
+.card p {
+    font-size: 14px;
+    color: #555;
+}
+.card span {
+    font-weight: bold;
+    color: #d2a679;
+}
+
+/* Tienda */
+body {
+    margin: 0;
+    font-family: 'Poppins', sans-serif;
+    background-color: #f3ede2; /* latte claro */
+    color: #3c2e2e;
+}
+
+/* ===== Banner ===== */
+.banner-tienda {
+    background: url('../img/hero-cafe2.jpg') center/cover no-repeat;
+    height: 60vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.banner-tienda .overlay {
+    background: rgba(30, 20, 10, 0.6);
+    color: #fdf7f0;
+    text-align: center;
+    padding: 40px;
+    border-radius: 10px;
+}
+
+.banner-tienda h1 {
+    font-size: 2.8rem;
+    margin-bottom: 10px;
+    color: #f5c06a; /* tono miel */
+}
+
+.banner-tienda p {
+    font-size: 1.1rem;
+    color: #fdf3e7;
+}
+
+/* ===== Productos ===== */
+.tienda {
+    padding: 60px 10%;
+}
+
+.titulo-seccion {
+    text-align: center;
+    color: #4b2c20;
+    font-size: 2rem;
+    margin-bottom: 40px;
+    border-bottom: 3px solid #b37c4e; /* tono caramelo */
+    display: inline-block;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 30px;
+}
+
+.card {
+    background-color: #fffdf9;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+}
+
+.card img {
+    width: 100%;
+    height: 220px;
+    object-fit: cover;
+}
+
+.card .info {
+    padding: 15px;
+}
+
+.card h3 {
+    margin-top: 0;
+    color: #3d2a1e;
+    font-weight: 600;
+}
+
+.card p {
+    font-size: 14px;
+    color: #5c4a3d;
+}
+
+.precio {
+    display: inline-block;
+    margin-top: 10px;
+    background-color: #b37c4e; /* café caramelo */
+    color: white;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-weight: bold;
+}
+
+.sin-productos {
+    text-align: center;
+    color: #8b4513;
+    font-size: 1.2rem;
+}
+

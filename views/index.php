@@ -1,4 +1,11 @@
-<?php require_once("../config/db.php"); ?>
+<?php 
+session_start();
+require_once("../config/db.php");
+global $pdo;
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
+?>
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -17,38 +24,50 @@
             <a href="#contacto" class="btn">Haz tu pedido</a>
         </div>
     </section>
-<section id="productos" class="productos">
-    <h2>Nuestros Productos</h2>
-    <div class="grid">
-        <?php
-        $query = $pdo->query("SELECT * FROM productos LIMIT 6");
-        while ($row = $query->fetch(PDO::FETCH_ASSOC)) {
-            $img = "../assets/img/" . $row['imagen'];
 
-            // Si la imagen no existe, prueba con extensión alternativa
-            if (!file_exists($img)) {
-                $nombreBase = pathinfo($row['imagen'], PATHINFO_FILENAME);
-                if (file_exists("../assets/img/{$nombreBase}.jpg")) {
-                    $img = "../assets/img/{$nombreBase}.jpg";
-                } elseif (file_exists("../assets/img/{$nombreBase}.jpeg")) {
-                    $img = "../assets/img/{$nombreBase}.jpeg";
+    <!-- 🟤 SECCIÓN DE PRODUCTOS -->
+    <section id="productos" class="productos">
+        <h2>Nuestros Productos</h2>
+        <div class="grid">
+            <?php
+            try {
+                $query = $pdo->query("SELECT * FROM productos LIMIT 6");
+
+                if ($query->rowCount() === 0) {
+                    echo "<p style='color:red;'>⚠️ No se encontraron productos en la base de datos.</p>";
                 } else {
-                    $img = "../assets/img/default.jpg"; // imagen de respaldo
+                    while ($row = $query->fetch(PDO::FETCH_ASSOC)) {
+                        $img = "../assets/img/" . $row['imagen'];
+
+                        // Verificar si la imagen existe, o usar una de respaldo
+                        if (!file_exists($img)) {
+                            $nombreBase = pathinfo($row['imagen'], PATHINFO_FILENAME);
+                            if (file_exists("../assets/img/{$nombreBase}.jpg")) {
+                                $img = "../assets/img/{$nombreBase}.jpg";
+                            } elseif (file_exists("../assets/img/{$nombreBase}.jpeg")) {
+                                $img = "../assets/img/{$nombreBase}.jpeg";
+                            } else {
+                                $img = "../assets/img/default.jpg"; // imagen de respaldo
+                            }
+                        }
+
+                        // Mostrar la tarjeta del producto
+                        echo "<div class='card'>";
+                        echo "<img src='$img' alt='{$row['nombre']}'>";
+                        echo "<h3>{$row['nombre']}</h3>";
+                        echo "<p>{$row['descripcion']}</p>";
+                        echo "<span>\${$row['precio']}</span>";
+                        echo "</div>";
+                    }
                 }
+            } catch (PDOException $e) {
+                echo "<p style='color:red;'>Error: {$e->getMessage()}</p>";
             }
+            ?>
+        </div>
+    </section>
 
-            echo "<div class='card'>";
-            echo "<img src='$img' alt='{$row['nombre']}'>";
-            echo "<h3>{$row['nombre']}</h3>";
-            echo "<p>{$row['descripcion']}</p>";
-            echo "<span>\${$row['precio']}</span>";
-            echo "</div>";
-        }
-        ?>
-    </div>
-</section>
-
-
+    <!-- 🟢 SECCIÓN DE CONTACTO -->
     <section id="contacto" class="contacto">
         <h2>Contáctanos</h2>
         <form method="POST" action="../php/guardar_contacto.php">
