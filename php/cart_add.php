@@ -26,7 +26,13 @@ if (!isset($_SESSION['cart'][$id])) {
   $_SESSION['cart'][$id]['cantidad']++;
 }
 
+// Calcular total de productos en el carrito
+$count = 0;
+foreach ($_SESSION['cart'] as $item) {
+    $count += $item['cantidad'];
+}
+
 echo json_encode([
   'ok'=>true,
-  'count'=>array_sum(array_column($_SESSION['cart'],'cantidad'))
+  'count'=> $count
 ]);
