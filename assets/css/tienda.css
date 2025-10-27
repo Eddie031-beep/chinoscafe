@@ -1,172 +1,185 @@
-/* ======================
-🎨 Paleta café natural
-====================== */
-:root {
-    --cafe-oscuro: #3b2f2f;
-    --cafe-medio: #8b5e3c;
-    --cafe-claro: #d2a679;
-    --crema: #f8efe2;
-    --blanco: #fff;
-    --sombra: rgba(0,0,0,0.15);
+/* =========================================
+   TIENDA — Variables (opcional)
+   (re-usa las globales de style.css)
+========================================= */
+/* nada extra aquí por ahora */
+
+/* Anclajes (#productos) no queden bajo el header fijo */
+.page-tienda [id] { scroll-margin-top: 110px; }
+
+/* =========================================
+   HERO PRINCIPAL (TIENDA)
+========================================= */
+.page-tienda .hero-tienda {
+  margin-top: -90px; /* compensa header fijo */
+  height: 88vh;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  color: #fff;
+  background: url('../img/hero-cafe2.jpg') center / cover no-repeat fixed;
+  position: relative;
 }
 
-body {
-    margin: 0;
-    font-family: 'Poppins', sans-serif;
-    background-color: var(--crema);
-    color: var(--cafe-oscuro);
+.page-tienda .hero-tienda::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
 }
 
-/* ======================
-🟤 Hero principal
-====================== */
-.hero-tienda {
-    background: url('../img/hero-cafe2.jpg') center/cover no-repeat fixed;
-    height: 90vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    position: relative;
-    color: var(--blanco);
+.page-tienda .contenido-hero {
+  position: relative;
+  z-index: 1;
+  max-width: 760px;
+  padding: 20px;
 }
 
-.hero-tienda::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: rgba(0,0,0,0.45);
+.page-tienda .contenido-hero h1 {
+  font-size: 2.6rem;
+  margin: 0 0 10px;
 }
 
-.contenido-hero {
-    position: relative;
-    z-index: 2;
-    max-width: 700px;
-    padding: 20px;
+.page-tienda .contenido-hero p {
+  color: #f5e9d7;
+  opacity: 0.95;
 }
 
-.contenido-hero h1 {
-    font-size: 3rem;
-    margin-bottom: 15px;
+.page-tienda .btn-hero {
+  display: inline-block;
+  margin-top: 18px;
+  background: var(--cafe-claro);
+  color: #fff;
+  padding: 12px 22px;
+  border-radius: 24px;
+  text-decoration: none;
 }
 
-.contenido-hero p {
-    font-size: 1.2rem;
-    color: var(--crema);
+.page-tienda .btn-hero:hover { background: var(--cafe-medio); }
+
+/* =========================================
+   FILTROS
+========================================= */
+.page-tienda .filtros {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 18px;
+  background: var(--cafe-oscuro);
 }
 
-.btn-hero {
-    display: inline-block;
-    margin-top: 20px;
-    background: var(--cafe-claro);
-    color: var(--blanco);
-    padding: 12px 25px;
-    border-radius: 25px;
-    text-decoration: none;
-    font-weight: bold;
-    transition: background 0.3s ease;
-}
-.btn-hero:hover {
-    background: var(--cafe-medio);
+.page-tienda .filtro-btn {
+  background: var(--cafe-claro);
+  border: 0;
+  color: #fff;
+  padding: 9px 16px;
+  border-radius: 18px;
+  cursor: pointer;
+  transition: background 0.2s;
 }
 
-/* ======================
-☕ Filtros
-====================== */
-.filtros {
-    display: flex;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 15px;
-    padding: 25px;
-    background: var(--cafe-oscuro);
+.page-tienda .filtro-btn:hover,
+.page-tienda .filtro-btn.activo {
+  background: var(--cafe-medio);
 }
 
-.filtro-btn {
-    background: var(--cafe-claro);
-    border: none;
-    color: var(--blanco);
-    padding: 10px 20px;
-    border-radius: 20px;
-    cursor: pointer;
-    transition: background 0.3s;
+/* =========================================
+   GRID DE PRODUCTOS
+========================================= */
+.page-tienda .productos {
+  padding: 56px 7%;
 }
 
-.filtro-btn:hover,
-.filtro-btn.activo {
-    background: var(--cafe-medio);
+.page-tienda .titulo-seccion {
+  text-align: center;
+  font-size: 2rem;
+  margin: 26px 0;
+  color: var(--cafe-oscuro);
 }
 
-/* ======================
-🧁 Productos
-====================== */
-.productos {
-    padding: 60px 8%;
+.page-tienda .grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 24px;
 }
 
-.titulo-seccion {
-    text-align: center;
-    font-size: 2rem;
-    color: var(--cafe-oscuro);
-    margin-bottom: 40px;
+.page-tienda .card {
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
 }
 
-.grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 25px;
+.page-tienda .card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.22);
 }
 
-.card {
-    background: var(--blanco);
-    border-radius: 15px;
-    box-shadow: 0 5px 15px var(--sombra);
-    overflow: hidden;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+.page-tienda .img-container {
+  height: 220px;
+  overflow: hidden;
 }
 
-.card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.25);
+.page-tienda .img-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s;
 }
 
-.img-container {
-    height: 220px;
-    overflow: hidden;
+.page-tienda .card:hover .img-container img {
+  transform: scale(1.06);
 }
 
-.img-container img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform 0.4s ease;
+.page-tienda .info {
+  padding: 14px;
+  text-align: center;
 }
 
-.card:hover img {
-    transform: scale(1.08);
+.page-tienda .info h3 {
+  margin: 8px 0 6px;
+  color: #3d2a1e;
+  font-weight: 600;
 }
 
-.info {
-    padding: 15px;
-    text-align: center;
+.page-tienda .info p {
+  margin: 0 0 10px;
+  color: #5c4a3d;
+  font-size: 0.94rem;
+  min-height: 42px;
 }
 
-.info h3 {
-    margin: 10px 0 5px;
-    color: var(--cafe-oscuro);
+.page-tienda .precio {
+  display: inline-block;
+  background: var(--cafe-claro);
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 18px;
+  font-weight: 700;
 }
 
-.info p {
-    font-size: 0.9rem;
-    color: #555;
+/* Acciones tarjeta (para carrito) */
+.page-tienda .card .acciones {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin: 12px 0 14px;
 }
 
-.precio {
-    background: var(--cafe-claro);
-    color: var(--blanco);
-    padding: 7px 12px;
-    border-radius: 25px;
-    display: inline-block;
-    margin-top: 10px;
-    font-weight: bold;
+.page-tienda .btn-sm {
+  border: 0;
+  border-radius: 18px;
+  padding: 8px 14px;
+  cursor: pointer;
+}
+
+.page-tienda .btn-add  { background: #2e7d32; color: #fff; }
+.page-tienda .btn-view { background: #37474f; color: #fff; }
+
+.page-tienda .sin-productos {
+  text-align: center;
+  color: #8b4513;
+  font-size: 1.1rem;
 }

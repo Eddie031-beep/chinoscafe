@@ -1,336 +1,228 @@
-body {
-    margin: 0;
-    font-family: 'Poppins', sans-serif;
-    background-color: #f8f6f1;
-    color: #3b2f2f;
+/* =========================================
+   VARIABLES (globales)
+========================================= */
+:root {
+  --cafe-oscuro: #2b1e17;
+  --cafe-medio:  #8b5e3c;
+  --cafe-claro:  #d2a679;
+  --crema:       #f8f6f1;
+  --texto:       #3b2f2f;
+  --sombra:      rgba(0, 0, 0, 0.12);
 }
 
-/* ===============================
-🌰 NAVBAR GLOBAL - CHINO’S CAFÉ
-================================= */
+/* =========================================
+   BASE
+========================================= */
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Poppins', system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, 'Helvetica Neue', Arial;
+  color: var(--texto);
+  background: var(--crema);
+}
+
+/* Espacio para header fijo */
+body { padding-top: 90px; }
+
+/* =========================================
+   NAVBAR GLOBAL
+========================================= */
 .navbar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    background: rgba(43, 30, 23, 0.95);
-    -webkit-backdrop-filter: blur(4px);
-    backdrop-filter: blur(4px);
-    box-shadow: 0 3px 10px rgba(0,0,0,0.3);
-    z-index: 1000;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%;
+  height: 90px;
+  background: rgba(43, 30, 23, 0.95);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
 }
 
 .nav-container {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 12px 8%;
+  height: 90px;
+  padding: 0 8%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
 }
 
 .logo img {
-    height: 65px;
-    width: auto;
-    border-radius: 12px;
-    object-fit: contain;
-    transition: transform 0.3s ease;
+  height: 64px;
+  width: auto;
+  border-radius: 12px;
+  object-fit: contain;
+  transition: transform 0.2s;
 }
 
-.logo img:hover {
-    transform: scale(1.05);
-}
+.logo img:hover { transform: scale(1.03); }
 
 .menu {
-    display: flex;
-    gap: 25px;
+  display: flex;
+  gap: 25px;
+  align-items: center;
 }
 
 .menu a {
-    text-decoration: none;
-    color: #f8efe2;
-    font-weight: 500;
-    font-size: 1rem;
-    transition: color 0.3s ease;
+  color: #f8efe2;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 1rem;
+  opacity: 0.95;
+  transition: color 0.2s, opacity 0.2s;
 }
 
-.menu a:hover {
-    color: #d2a679;
+.menu a:hover,
+.menu a.active {
+  color: var(--cafe-claro);
+  opacity: 1;
 }
 
-/* Ajuste para evitar que el contenido se oculte debajo del header */
-body {
-    padding-top: 90px;
-}
-
-/* Responsivo */
+/* ===== Responsivo navbar ===== */
 @media (max-width: 768px) {
-    .nav-container {
-        flex-direction: column;
-        align-items: center;
-    }
-
-    .menu {
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 15px;
-        margin-top: 10px;
-    }
-}
-
-
-/* ===== NAVBAR ===== */
-.navbar {
-    background-color: #2f1b0c; /* color café oscuro */
-    color: #fff;
-    padding: 10px 0;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-    position: sticky;
-    top: 0;
-    z-index: 100;
-}
-
-.navbar .container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 90%;
-    margin: 0 auto;
-}
-
-/* LOGO */
-.logo {
-    display: flex;
-    align-items: center;
-    text-decoration: none;
-    color: #fff;
-    font-family: "Poppins", sans-serif;
-    font-weight: 600;
-    font-size: 1.4em;
-}
-
-.logo img {
-    width: 60px;           /* ✅ tamaño controlado */
-    height: 60px;
-    margin-right: 10px;
-    border-radius: 50%;
-    object-fit: contain;
-}
-
-/* MENÚ */
-.menu ul {
-    list-style: none;
-    display: flex;
-    gap: 25px;
-    margin: 0;
-    padding: 0;
-}
-
-.menu a {
-    text-decoration: none;
-    color: #fff;
-    font-weight: 500;
-    transition: color 0.3s;
-}
-
-.menu a:hover {
-    color: #d4a373; /* tono café claro */
-}
-
-
-/* Hero */
-.hero {
-    background: url('../img/hero-cafe.jpg') center/cover no-repeat;
-    height: 80vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    text-align: center;
-}
-.hero-content {
-    background: rgba(0, 0, 0, 0.5);
-    padding: 30px;
-    border-radius: 15px;
-}
-.btn {
-    background-color: #d2a679;
-    color: white;
-    padding: 10px 20px;
-    border-radius: 20px;
-    text-decoration: none;
-}
-
-/* Productos */
-.productos {
-    padding: 50px;
-    text-align: center;
-}
-.productos .grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 20px;
-}
-.card {
-    background-color: white;
-    border-radius: 10px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    padding: 15px;
-}
-.card img {
-    width: 100%;
-    border-radius: 10px;
-}
-
-/* Contacto */
-.contacto {
-    background-color: #3b2f2f;
-    color: white;
-    padding: 50px;
-}
-.contacto form {
-    display: flex;
+  .nav-container {
     flex-direction: column;
-    max-width: 400px;
-    margin: auto;
-}
-.contacto input, .contacto textarea {
-    margin-bottom: 15px;
-    padding: 10px;
-    border: none;
-    border-radius: 8px;
-}
-.contacto button {
-    background-color: #d2a679;
-    color: white;
-    border: none;
-    padding: 10px;
-    border-radius: 8px;
-    cursor: pointer;
-}
-
-----------------------------------Imagenes de los productos ----------------------------------
-.card img {
-    width: 100%;
-    height: 220px;
-    object-fit: cover;
-    border-radius: 10px;
-}
-.card h3 {
-    margin-top: 10px;
-    color: #3b2f2f;
-}
-.card p {
-    font-size: 14px;
-    color: #555;
-}
-.card span {
-    font-weight: bold;
-    color: #d2a679;
-}
-
-/* Tienda */
-body {
-    margin: 0;
-    font-family: 'Poppins', sans-serif;
-    background-color: #f3ede2; /* latte claro */
-    color: #3c2e2e;
-}
-
-/* ===== Banner ===== */
-.banner-tienda {
-    background: url('../img/hero-cafe2.jpg') center/cover no-repeat;
-    height: 60vh;
-    display: flex;
-    align-items: center;
     justify-content: center;
-    position: relative;
+    gap: 10px;
+  }
+
+  .menu {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 15px;
+  }
 }
 
-.banner-tienda .overlay {
-    background: rgba(30, 20, 10, 0.6);
-    color: #fdf7f0;
-    text-align: center;
-    padding: 40px;
-    border-radius: 10px;
+/* =========================================
+   HOME: HERO
+========================================= */
+.hero {
+  background: url('../img/hero-cafe.jpg') center / cover no-repeat;
+  height: 80vh;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  text-align: center;
 }
 
-.banner-tienda h1 {
-    font-size: 2.8rem;
-    margin-bottom: 10px;
-    color: #f5c06a; /* tono miel */
+.hero-content {
+  background: rgba(0, 0, 0, 0.5);
+  padding: 30px;
+  border-radius: 15px;
 }
 
-.banner-tienda p {
-    font-size: 1.1rem;
-    color: #fdf3e7;
+.btn {
+  display: inline-block;
+  background: var(--cafe-claro);
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 20px;
+  text-decoration: none;
 }
 
-/* ===== Productos ===== */
-.tienda {
-    padding: 60px 10%;
+/* =========================================
+   HOME: PREVIEW DE PRODUCTOS
+========================================= */
+.productos {
+  padding: 50px 6%;
+  text-align: center;
 }
 
-.titulo-seccion {
-    text-align: center;
-    color: #4b2c20;
-    font-size: 2rem;
-    margin-bottom: 40px;
-    border-bottom: 3px solid #b37c4e; /* tono caramelo */
-    display: inline-block;
-}
-
-.grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 30px;
+.productos .grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
 }
 
 .card {
-    background-color: #fffdf9;
-    border-radius: 12px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    overflow: hidden;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px var(--sombra);
+  overflow: hidden;
 }
 
 .card img {
-    width: 100%;
-    height: 220px;
-    object-fit: cover;
-}
-
-.card .info {
-    padding: 15px;
+  width: 100%;
+  height: 220px;
+  object-fit: cover;
+  border-radius: 10px;
 }
 
 .card h3 {
-    margin-top: 0;
-    color: #3d2a1e;
-    font-weight: 600;
+  margin: 12px;
+  color: var(--texto);
 }
 
 .card p {
-    font-size: 14px;
-    color: #5c4a3d;
+  margin: 0 12px 12px;
+  color: #555;
+  font-size: 0.92rem;
 }
 
-.precio {
-    display: inline-block;
-    margin-top: 10px;
-    background-color: #b37c4e; /* café caramelo */
-    color: white;
-    padding: 6px 12px;
-    border-radius: 8px;
-    font-weight: bold;
+.card span {
+  display: inline-block;
+  margin: 0 0 14px 12px;
+  color: var(--cafe-medio);
+  font-weight: 700;
 }
 
-.sin-productos {
-    text-align: center;
-    color: #8b4513;
-    font-size: 1.2rem;
+/* =========================================
+   CONTACTO
+========================================= */
+.contacto {
+  background: #3b2f2f;
+  color: #fff;
+  padding: 50px;
 }
 
+.contacto form {
+  display: flex;
+  flex-direction: column;
+  max-width: 400px;
+  margin: auto;
+}
+
+.contacto input,
+.contacto textarea {
+  margin-bottom: 15px;
+  padding: 10px;
+  border: none;
+  border-radius: 8px;
+}
+
+.contacto button {
+  background: var(--cafe-claro);
+  color: #fff;
+  border: none;
+  padding: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+/* =========================================
+   FOOTER
+========================================= */
+.footer {
+  padding: 26px 8%;
+  text-align: center;
+  background: #24150f;
+  color: #f0e7dc;
+  margin-top: 60px;
+}
+
+/* =========================================
+   REFUERZO DEL LOGO (por si otra hoja pisa)
+========================================= */
+.navbar .logo img {
+  max-height: 65px !important;
+  width: auto !important;
+  height: auto !important;
+}
