@@ -1,6 +1,6 @@
 <?php
 // includes/header.php
-session_start(); // ← AGREGAR ESTA LÍNEA AL INICIO
+// No iniciar sesión aquí, ya que se inicia en las páginas que lo incluyen
 
 $base = '/chinoscafe';
 $current = $_SERVER['REQUEST_URI'] ?? '';
@@ -12,6 +12,10 @@ function active($path){
 // Usar función helper para el contador del carrito
 require_once("helpers.php");
 $cart_count = getCartCount();
+
+// Verificar si el usuario está logueado
+$usuario_logueado = isset($_SESSION['usuario_id']);
+$usuario_rol = $_SESSION['usuario_rol'] ?? '';
 ?>
 <header class="navbar">
   <div class="nav-container">
@@ -21,16 +25,27 @@ $cart_count = getCartCount();
     <nav class="menu">
       <a <?= active('/views/index.php') ?> href="<?= $base ?>/views/index.php">Inicio</a>
       <a <?= active('/views/tienda.php') ?> href="<?= $base ?>/views/tienda.php">Tienda</a>
-      <a <?= active('/views/inventario.php') ?> href="<?= $base ?>/views/inventario.php">Inventario</a>
-      <a <?= active('/views/proveedores.php') ?> href="<?= $base ?>/views/proveedores.php">Proveedores</a>
-      <a <?= active('/views/ventas.php') ?> href="<?= $base ?>/views/ventas.php">Ventas</a>
+
+      <?php if ($usuario_logueado && $usuario_rol === 'admin'): ?>
+        <a <?= active('/views/inventario.php') ?> href="<?= $base ?>/views/inventario.php">Inventario</a>
+        <a <?= active('/views/proveedores.php') ?> href="<?= $base ?>/views/proveedores.php">Proveedores</a>
+        <a <?= active('/views/ventas.php') ?> href="<?= $base ?>/views/ventas.php">Ventas</a>
+        <a <?= active('/views/admin_dashboard.php') ?> href="<?= $base ?>/views/admin_dashboard.php">Admin</a>
+      <?php endif; ?>
+
       <a href="<?= $base ?>/views/cart.php" class="cart-link">
         🛒 Carrito 
         <?php if ($cart_count > 0): ?>
           <span class="cart-count"><?= $cart_count ?></span>
         <?php endif; ?>
       </a>
-      <a <?= active('/views/contacto.php') ?> href="<?= $base ?>/views/contacto.php">Contacto</a>
+
+      <?php if ($usuario_logueado): ?>
+        <a href="<?= $base ?>/php/logout.php" class="logout-link">Cerrar Sesión (<?= htmlspecialchars($_SESSION['usuario_nombre']) ?>)</a>
+      <?php else: ?>
+        <a <?= active('/views/login.php') ?> href="<?= $base ?>/views/login.php">Iniciar Sesión</a>
+        <a <?= active('/views/register.php') ?> href="<?= $base ?>/views/register.php">Registrarse</a>
+      <?php endif; ?>
     </nav>
   </div>
 </header>
@@ -53,14 +68,12 @@ $cart_count = getCartCount();
   top: -1px;
 }
 
-/* Mejorar el enlace del carrito */
 .cart-link {
   display: flex;
   align-items: center;
   gap: 5px;
 }
 
-/* Asegurar que los enlaces activos se vean bien */
 .menu a.active {
   color: var(--cafe-claro) !important;
   opacity: 1 !important;

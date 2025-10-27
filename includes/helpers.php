@@ -2,6 +2,15 @@
 // includes/helpers.php
 
 /**
+ * Iniciar sesión de manera segura
+ */
+function safe_session_start() {
+    if (session_status() == PHP_SESSION_NONE) {
+        session_start();
+    }
+}
+
+/**
  * Calcula totales del carrito
  */
 function calcularTotalesCarrito($cart) {
@@ -30,9 +39,7 @@ function calcularTotalesCarrito($cart) {
  * Obtener contador del carrito
  */
 function getCartCount() {
-    if (!isset($_SESSION)) {
-        session_start();
-    }
+    safe_session_start(); // Usar la función segura
     
     $cart_count = 0;
     if (isset($_SESSION['cart'])) {
@@ -74,5 +81,41 @@ function verificarProducto($pdo, $id) {
  */
 function sanitize($data) {
     return sanitizar($data);
+}
+
+/**
+ * Verificar si el usuario está logueado
+ */
+function usuarioLogueado() {
+    safe_session_start(); // Ahora esta función existe
+    return isset($_SESSION['usuario_id']);
+}
+
+/**
+ * Verificar si el usuario es administrador
+ */
+function esAdmin() {
+    safe_session_start(); // Ahora esta función existe
+    return isset($_SESSION['usuario_rol']) && $_SESSION['usuario_rol'] === 'admin';
+}
+
+/**
+ * Redirigir si no es administrador
+ */
+function requerirAdmin() {
+    if (!esAdmin()) {
+        header("Location: login.php");
+        exit;
+    }
+}
+
+/**
+ * Redirigir si no está logueado
+ */
+function requerirLogin() {
+    if (!usuarioLogueado()) {
+        header("Location: login.php");
+        exit;
+    }
 }
 ?>

@@ -3,6 +3,12 @@ session_start();
 require_once("../config/db.php");
 global $pdo;
 
+// Solo administradores pueden acceder
+if (!esAdmin()) {
+    header("Location: login.php");
+    exit;
+}
+
 // Manejar acciones (agregar, editar, eliminar)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $accion = $_POST['accion'] ?? '';

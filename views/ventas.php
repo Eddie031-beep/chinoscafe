@@ -3,6 +3,13 @@ session_start();
 require_once("../config/db.php");
 global $pdo;
 
+
+// Solo administradores pueden acceder
+if (!esAdmin()) {
+    header("Location: login.php");
+    exit;
+}
+
 // Filtros
 $fecha_desde = $_GET['fecha_desde'] ?? date('Y-m-01');
 $fecha_hasta = $_GET['fecha_hasta'] ?? date('Y-m-d');
