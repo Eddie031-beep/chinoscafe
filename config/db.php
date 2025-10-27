@@ -2,8 +2,8 @@
 $host = 'localhost';
 $db   = 'chinoscafe_db'; // 👈 debe incluir "_db"
 $user = 'root';
-$pass = '';
-$port = '3306';
+$pass = 'maria';
+$port = '3307';
 
 try {
     $pdo = new PDO("mysql:host=$host;port=$port;dbname=$db;charset=utf8", $user, $pass);

@@ -13,7 +13,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $confirm_password = $_POST['confirm_password'] ?? '';
 
     if (!empty($nombre) && !empty($correo) && !empty($password) && !empty($confirm_password)) {
-        if ($password !== $confirm_password) {
+        // Validación de longitud de contraseña
+        if (strlen($password) < 6) {
+            $error = "❌ La contraseña debe tener al menos 6 caracteres.";
+        } elseif ($password !== $confirm_password) {
             $error = "❌ Las contraseñas no coinciden.";
         } else {
             try {
@@ -28,12 +31,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                     // Insertar usuario
                     $stmt = $pdo->prepare("INSERT INTO usuarios (nombre, correo, password_hash) VALUES (?, ?, ?)");
-                    $stmt->execute([$nombre, $correo, $password_hash]);
-
-                    $success = "✅ Registro exitoso. Ahora puedes iniciar sesión.";
+                    
+                    if ($stmt->execute([$nombre, $correo, $password_hash])) {
+                        $success = "✅ Registro exitoso. Ahora puedes iniciar sesión.";
+                        // Limpiar el formulario después de registro exitoso
+                        $_POST = array();
+                    } else {
+                        $error = "❌ Error al registrar. Intenta nuevamente.";
+                    }
                 }
             } catch (PDOException $e) {
-                $error = "❌ Error al registrar. Intenta nuevamente.";
+                // Mensaje de error más detallado para debugging
+                $error = "❌ Error en el sistema: " . $e->getMessage();
+                // Log del error (opcional, para producción quitar el mensaje al usuario)
+                error_log("Error en registro: " . $e->getMessage());
             }
         }
     } else {
@@ -90,6 +101,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             border: 1px solid #ddd;
             border-radius: 8px;
             font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--cafe-medio);
         }
 
         .btn-register {
@@ -103,6 +120,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             font-weight: 600;
             cursor: pointer;
             margin-bottom: 15px;
+            transition: background 0.3s;
         }
 
         .btn-register:hover {
@@ -114,6 +132,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             margin-top: 20px;
         }
 
+        .login-link a {
+            color: var(--cafe-medio);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .login-link a:hover {
+            text-decoration: underline;
+        }
+
         .alert-error {
             background: #f8d7da;
             color: #721c24;
@@ -121,6 +149,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             border-radius: 8px;
             margin-bottom: 20px;
             text-align: center;
+            border: 1px solid #f5c6cb;
         }
 
         .alert-success {
@@ -130,6 +159,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             border-radius: 8px;
             margin-bottom: 20px;
             text-align: center;
+            border: 1px solid #c3e6cb;
+        }
+
+        .password-requirement {
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 5px;
         }
     </style>
 </head>
@@ -171,6 +207,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <label class="form-label">Contraseña</label>
                     <input type="password" name="password" class="form-input" required 
                            placeholder="Mínimo 6 caracteres">
+                    <div class="password-requirement">La contraseña debe tener al menos 6 caracteres</div>
                 </div>
 
                 <div class="form-group">

@@ -11,34 +11,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (!empty($correo) && !empty($password)) {
         try {
-            $stmt = $pdo->prepare("SELECT * FROM usuarios WHERE correo = ? AND activo = 1");
+            // Consulta temporal sin 'activo'
+            $stmt = $pdo->prepare("SELECT * FROM usuarios WHERE correo = ?");
             $stmt->execute([$correo]);
             $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
 
-            if ($usuario && password_verify($password, $usuario['password_hash'])) {
-                // Iniciar sesión
-                $_SESSION['usuario_id'] = $usuario['id'];
-                $_SESSION['usuario_nombre'] = $usuario['nombre'];
-                $_SESSION['usuario_rol'] = $usuario['rol'];
+            if ($usuario) {
+                // Verificar contraseña
+                if (password_verify($password, $usuario['password_hash'])) {
+                    // Iniciar sesión correctamente
+                    $_SESSION['usuario_id'] = $usuario['id'];
+                    $_SESSION['usuario_nombre'] = $usuario['nombre'];
+                    $_SESSION['usuario_rol'] = $usuario['rol'];
+                    $_SESSION['usuario_correo'] = $usuario['correo'];
 
-                // Redirigir según el rol
-                if ($usuario['rol'] === 'admin') {
-                    header("Location: admin_dashboard.php");
+                    // Redirigir según el rol
+                    if ($usuario['rol'] === 'admin') {
+                        header("Location: admin_dashboard.php");
+                    } else {
+                        header("Location: index.php");
+                    }
+                    exit;
                 } else {
-                    header("Location: index.php");
+                    $error = "❌ Contraseña incorrecta.";
                 }
-                exit;
             } else {
-                $error = "❌ Correo o contraseña incorrectos.";
+                $error = "❌ Usuario no encontrado.";
             }
         } catch (PDOException $e) {
-            $error = "❌ Error al iniciar sesión. Intenta nuevamente.";
+            $error = "❌ Error en el sistema: " . $e->getMessage();
         }
     } else {
         $error = "❌ Por favor, completa todos los campos.";
     }
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -88,6 +96,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             border: 1px solid #ddd;
             border-radius: 8px;
             font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--cafe-medio);
         }
 
         .btn-login {
@@ -101,6 +115,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             font-weight: 600;
             cursor: pointer;
             margin-bottom: 15px;
+            transition: background 0.3s;
         }
 
         .btn-login:hover {
@@ -112,6 +127,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             margin-top: 20px;
         }
 
+        .register-link a {
+            color: var(--cafe-medio);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .register-link a:hover {
+            text-decoration: underline;
+        }
+
         .alert-error {
             background: #f8d7da;
             color: #721c24;
@@ -119,6 +144,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             border-radius: 8px;
             margin-bottom: 20px;
             text-align: center;
+            border: 1px solid #f5c6cb;
         }
     </style>
 </head>
@@ -140,13 +166,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <label class="form-label">Correo Electrónico</label>
                     <input type="email" name="correo" class="form-input" required 
                            value="<?= htmlspecialchars($_POST['correo'] ?? '') ?>"
-                           placeholder="tu.correo@ejemplo.com">
+                           placeholder="admin@chinoscafe.com">
                 </div>
 
                 <div class="form-group">
                     <label class="form-label">Contraseña</label>
                     <input type="password" name="password" class="form-input" required 
-                           placeholder="Tu contraseña">
+                           placeholder="password">
                 </div>
 
                 <button type="submit" class="btn-login">
@@ -157,6 +183,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="register-link">
                 ¿No tienes cuenta? <a href="register.php">Regístrate aquí</a>
             </div>
+
         </div>
     </main>
 

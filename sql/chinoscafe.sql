@@ -45,11 +45,17 @@ CREATE TABLE contactos (
   mensaje TEXT
 );
 
--- Usuarios del sistema
 CREATE TABLE usuarios (
   id INT AUTO_INCREMENT PRIMARY KEY,
-  nombre VARCHAR(100),
-  correo VARCHAR(100),
-  password_hash VARCHAR(255),
-  rol ENUM('admin','empleado') DEFAULT 'empleado'
+  nombre VARCHAR(100) NOT NULL,
+  correo VARCHAR(100) UNIQUE NOT NULL,
+  password_hash VARCHAR(255) NOT NULL,
+  rol ENUM('admin','empleado') DEFAULT 'empleado',
+  activo TINYINT(1) DEFAULT 1,
+  fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+
+-- Insertar usuario administrador por defecto
+INSERT INTO usuarios (nombre, correo, password_hash, rol) VALUES 
+('Administrador', 'admin@chinoscafe.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin');
