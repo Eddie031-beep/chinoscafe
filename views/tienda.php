@@ -430,3 +430,55 @@ global $pdo;
                 <option value="name-desc">Nombre: Z-A</option>
             </select>
         </div>
+
+        <!-- 🔽 BLOQUE NUEVO PARA MOSTRAR PRODUCTOS -->
+        <?php
+        try {
+            $stmt = $pdo->query("SELECT * FROM productos WHERE activo = 1");
+            $productos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            echo "<p class='no-results'>Error al cargar productos: " . $e->getMessage() . "</p>";
+            $productos = [];
+        }
+        ?>
+
+        <div class="productos-grid">
+        <?php if (count($productos) > 0): ?>
+            <?php foreach ($productos as $p): ?>
+                <div class="producto-card" data-categoria="<?= htmlspecialchars($p['categoria']) ?>">
+                    <div class="producto-image-wrapper">
+                        <img src="../img/<?= htmlspecialchars($p['imagen']) ?>" alt="<?= htmlspecialchars($p['nombre']) ?>" class="producto-image">
+                        <span class="producto-badge"><?= htmlspecialchars($p['categoria']) ?></span>
+                    </div>
+                    <div class="producto-info">
+                        <p class="producto-categoria"><?= htmlspecialchars($p['categoria']) ?></p>
+                        <h3 class="producto-nombre"><?= htmlspecialchars($p['nombre']) ?></h3>
+                        <p class="producto-descripcion"><?= htmlspecialchars($p['descripcion']) ?></p>
+                        <div class="producto-footer">
+                            <span class="producto-precio">$<?= number_format($p['precio'], 2) ?></span>
+                            <form method="post" action="../php/cart_add.php">
+                                <input type="hidden" name="id" value="<?= $p['id'] ?>">
+                                <button type="submit" class="btn-add-cart">🛒 Añadir</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        <?php else: ?>
+            <div class="no-results">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 105.656-5.656L12 8.343l-2.828 2.829a4 4 0 000 5.656z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 12v.01"/>
+                </svg>
+                <p>No se encontraron productos disponibles.</p>
+            </div>
+        <?php endif; ?>
+        </div>
+        <!-- 🔼 FIN BLOQUE NUEVO -->
+
+    </main>
+
+    <?php include("../includes/footer.php"); ?>
+    <script src="../js/tienda.js"></script>
+</body>
+</html>
