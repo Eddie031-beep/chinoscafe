@@ -1,7 +1,5 @@
 <?php
 // includes/header.php
-// No iniciar sesión aquí, ya que se inicia en las páginas que lo incluyen
-
 $base = '/chinoscafe';
 $current = $_SERVER['REQUEST_URI'] ?? '';
 function active($path){ 
@@ -9,35 +7,24 @@ function active($path){
     return strpos($current, $path) !== false ? 'class="active"' : ''; 
 }
 
-// Usar función helper para el contador del carrito
-require_once("helpers.php");
-$cart_count = getCartCount();
+// Requerir helpers
+require_once(__DIR__ . "/helpers.php");
+safe_session_start();
 
-// Verificar si el usuario está logueado
+$cart_count = getCartCount();
 $usuario_logueado = isset($_SESSION['usuario_id']);
 $usuario_rol = $_SESSION['usuario_rol'] ?? '';
+$usuario_nombre = $_SESSION['usuario_nombre'] ?? '';
 ?>
 <header class="navbar">
   <div class="nav-container">
+    <!-- LOGO -->
     <a href="<?= $base ?>/views/index.php" class="logo" aria-label="Chinos Café">
       <img src="<?= $base ?>/assets/img/Logo.jpg" alt="Chinos Café">
     </a>
-    
-    <!-- 🔍 BUSCADOR VISUAL -->
-    <div class="search-container">
-      <button class="search-toggle" id="searchToggle" aria-label="Buscar">
-        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="9" cy="9" r="8"></circle>
-          <path d="m21 21-4.35-4.35"></path>
-        </svg>
-      </button>
-      <div class="search-panel" id="searchPanel">
-        <input type="text" id="searchInput" placeholder="Buscar productos..." class="search-input">
-        <div id="searchResults" class="search-results"></div>
-      </div>
-    </div>
 
-    <nav class="menu">
+    <!-- MENÚ PRINCIPAL (desktop/mobile) -->
+    <nav class="menu" id="mainMenu">
       <a <?= active('/views/index.php') ?> href="<?= $base ?>/views/index.php">Inicio</a>
       <a <?= active('/views/tienda.php') ?> href="<?= $base ?>/views/tienda.php">Tienda</a>
       <a <?= active('/views/sucursales.php') ?> href="<?= $base ?>/views/sucursales.php">Sucursales</a>
@@ -49,21 +36,37 @@ $usuario_rol = $_SESSION['usuario_rol'] ?? '';
         <a <?= active('/views/ventas.php') ?> href="<?= $base ?>/views/ventas.php">Ventas</a>
         <a <?= active('/views/admin_dashboard.php') ?> href="<?= $base ?>/views/admin_dashboard.php">Admin</a>
       <?php endif; ?>
+    </nav>
 
-      <!-- 🛒 CARRITO MEJORADO -->
-      <a href="<?= $base ?>/views/cart.php" class="cart-link" aria-label="Carrito de compras">
-        <div class="cart-icon-wrapper">
-          <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="9" cy="21" r="1"></circle>
-            <circle cx="20" cy="21" r="1"></circle>
-            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+    <!-- ACCIONES DERECHA -->
+    <div class="nav-actions">
+      <!-- 🔍 BUSCADOR -->
+      <div class="search-container">
+        <button class="search-toggle" id="searchToggle" aria-label="Buscar">
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="9" cy="9" r="8"></circle>
+            <path d="m21 21-4.35-4.35"></path>
           </svg>
-          <?php if ($cart_count > 0): ?>
-            <span class="cart-badge"><?= $cart_count ?></span>
-          <?php endif; ?>
+        </button>
+        <div class="search-panel" id="searchPanel">
+          <input type="text" id="searchInput" placeholder="Buscar productos..." class="search-input">
+          <div id="searchResults" class="search-results"></div>
         </div>
+      </div>
+
+      <!-- 🛒 CARRITO -->
+      <a href="<?= $base ?>/views/cart.php" class="cart-link" aria-label="Carrito">
+        <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="9" cy="21" r="1"></circle>
+          <circle cx="20" cy="21" r="1"></circle>
+          <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+        </svg>
+        <?php if ($cart_count > 0): ?>
+          <span class="cart-badge"><?= $cart_count ?></span>
+        <?php endif; ?>
       </a>
 
+      <!-- 👤 USUARIO -->
       <?php if ($usuario_logueado): ?>
         <div class="user-menu">
           <button class="user-toggle" id="userToggle">
@@ -71,7 +74,7 @@ $usuario_rol = $_SESSION['usuario_rol'] ?? '';
               <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
               <circle cx="12" cy="7" r="4"></circle>
             </svg>
-            <span><?= htmlspecialchars($_SESSION['usuario_nombre']) ?></span>
+            <span class="user-name"><?= htmlspecialchars($usuario_nombre) ?></span>
           </button>
           <div class="user-dropdown" id="userDropdown">
             <a href="<?= $base ?>/views/perfil.php">👤 Mi Perfil</a>
@@ -80,21 +83,23 @@ $usuario_rol = $_SESSION['usuario_rol'] ?? '';
           </div>
         </div>
       <?php else: ?>
-        <a <?= active('/views/login.php') ?> href="<?= $base ?>/views/login.php" class="btn-login">Iniciar Sesión</a>
+        <a href="<?= $base ?>/views/login.php" class="btn-login">Iniciar Sesión</a>
       <?php endif; ?>
-    </nav>
-    
-    <!-- Menú hamburguesa para móvil -->
-    <button class="mobile-toggle" id="mobileToggle" aria-label="Menú">
-      <span></span>
-      <span></span>
-      <span></span>
-    </button>
+
+      <!-- 🍔 HAMBURGUESA -->
+      <button class="mobile-toggle" id="mobileToggle" aria-label="Menú">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
   </div>
 </header>
 
 <style>
-/* ===== ESTILOS MEJORADOS ===== */
+/* ========================================= */
+/* NAVBAR MODERNA CON HAMBURGUESA */
+/* ========================================= */
 .navbar {
   position: fixed;
   top: 0;
@@ -116,6 +121,7 @@ $usuario_rol = $_SESSION['usuario_rol'] ?? '';
   gap: 20px;
 }
 
+/* LOGO */
 .logo img {
   height: 55px;
   width: auto;
@@ -127,11 +133,59 @@ $usuario_rol = $_SESSION['usuario_rol'] ?? '';
   transform: scale(1.05);
 }
 
-/* 🔍 BUSCADOR MODERNO */
-.search-container {
+/* MENÚ PRINCIPAL */
+.menu {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  flex: 1;
+  justify-content: center;
+  margin: 0 20px;
+}
+
+.menu a {
+  color: #f8efe2;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.95rem;
+  padding: 8px 15px;
+  border-radius: 20px;
+  transition: all 0.3s ease;
   position: relative;
+}
+
+.menu a::after {
+  content: '';
+  position: absolute;
+  bottom: 5px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 2px;
+  background: var(--cafe-claro);
+  transition: width 0.3s ease;
+}
+
+.menu a:hover::after,
+.menu a.active::after {
+  width: 60%;
+}
+
+.menu a:hover,
+.menu a.active {
+  color: var(--cafe-claro);
+}
+
+/* ACCIONES DERECHA */
+.nav-actions {
   display: flex;
   align-items: center;
+  gap: 15px;
+}
+
+/* 🔍 BUSCADOR */
+.search-container {
+  position: relative;
 }
 
 .search-toggle {
@@ -153,11 +207,6 @@ $usuario_rol = $_SESSION['usuario_rol'] ?? '';
   background: rgba(210, 166, 121, 0.3);
   border-color: var(--cafe-claro);
   transform: scale(1.05);
-}
-
-.search-toggle svg {
-  width: 22px;
-  height: 22px;
 }
 
 .search-panel {
@@ -211,6 +260,8 @@ $usuario_rol = $_SESSION['usuario_rol'] ?? '';
   border-radius: 8px;
   cursor: pointer;
   transition: background 0.2s;
+  text-decoration: none;
+  color: inherit;
 }
 
 .search-result-item:hover {
@@ -239,12 +290,12 @@ $usuario_rol = $_SESSION['usuario_rol'] ?? '';
   font-weight: 700;
 }
 
-/* 🛒 CARRITO MEJORADO */
+/* 🛒 CARRITO */
 .cart-link {
   position: relative;
   color: #f8efe2;
   text-decoration: none;
-  padding: 8px;
+  padding: 10px;
   border-radius: 50%;
   transition: all 0.3s ease;
   display: flex;
@@ -256,14 +307,10 @@ $usuario_rol = $_SESSION['usuario_rol'] ?? '';
   transform: scale(1.1);
 }
 
-.cart-icon-wrapper {
-  position: relative;
-}
-
 .cart-badge {
   position: absolute;
-  top: -8px;
-  right: -8px;
+  top: 0;
+  right: 0;
   background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
   color: #fff;
   border-radius: 50%;
@@ -283,7 +330,7 @@ $usuario_rol = $_SESSION['usuario_rol'] ?? '';
   50% { transform: scale(1.1); }
 }
 
-/* 👤 MENÚ DE USUARIO */
+/* 👤 USUARIO */
 .user-menu {
   position: relative;
 }
@@ -305,6 +352,13 @@ $usuario_rol = $_SESSION['usuario_rol'] ?? '';
 .user-toggle:hover {
   background: rgba(210, 166, 121, 0.3);
   transform: translateY(-2px);
+}
+
+.user-name {
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .user-dropdown {
@@ -348,54 +402,14 @@ $usuario_rol = $_SESSION['usuario_rol'] ?? '';
   padding-top: 15px;
 }
 
-/* MENÚ PRINCIPAL */
-.menu {
-  display: flex;
-  gap: 20px;
-  align-items: center;
-  flex: 1;
-  justify-content: center;
-}
-
-.menu a {
-  color: #f8efe2;
-  text-decoration: none;
-  font-weight: 500;
-  font-size: 0.95rem;
-  padding: 8px 15px;
-  border-radius: 20px;
-  transition: all 0.3s ease;
-  position: relative;
-}
-
-.menu a::after {
-  content: '';
-  position: absolute;
-  bottom: 5px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 0;
-  height: 2px;
-  background: var(--cafe-claro);
-  transition: width 0.3s ease;
-}
-
-.menu a:hover::after,
-.menu a.active::after {
-  width: 60%;
-}
-
-.menu a:hover,
-.menu a.active {
-  color: var(--cafe-claro);
-}
-
 .btn-login {
   background: linear-gradient(135deg, var(--cafe-medio), var(--cafe-claro));
   padding: 8px 20px !important;
   border-radius: 20px;
   font-weight: 600;
   transition: all 0.3s ease;
+  color: #fff;
+  text-decoration: none;
 }
 
 .btn-login:hover {
@@ -403,7 +417,7 @@ $usuario_rol = $_SESSION['usuario_rol'] ?? '';
   box-shadow: 0 5px 15px rgba(210, 166, 121, 0.4);
 }
 
-/* MENÚ MÓVIL */
+/* 🍔 HAMBURGUESA */
 .mobile-toggle {
   display: none;
   flex-direction: column;
@@ -412,6 +426,7 @@ $usuario_rol = $_SESSION['usuario_rol'] ?? '';
   border: none;
   cursor: pointer;
   padding: 5px;
+  z-index: 1002;
 }
 
 .mobile-toggle span {
@@ -422,32 +437,85 @@ $usuario_rol = $_SESSION['usuario_rol'] ?? '';
   transition: all 0.3s ease;
 }
 
-/* RESPONSIVO */
-@media (max-width: 968px) {
+.mobile-toggle.active span:nth-child(1) {
+  transform: rotate(45deg) translate(7px, 7px);
+}
+
+.mobile-toggle.active span:nth-child(2) {
+  opacity: 0;
+}
+
+.mobile-toggle.active span:nth-child(3) {
+  transform: rotate(-45deg) translate(7px, -7px);
+}
+
+/* ========================================= */
+/* RESPONSIVE */
+/* ========================================= */
+@media (max-width: 1024px) {
   .menu {
     position: fixed;
     top: 80px;
-    left: 0;
-    right: 0;
+    left: -100%;
+    width: 280px;
+    height: calc(100vh - 80px);
     flex-direction: column;
+    justify-content: flex-start;
+    align-items: stretch;
     background: rgba(43, 30, 23, 0.98);
     backdrop-filter: blur(10px);
     padding: 20px;
     gap: 10px;
-    transform: translateX(-100%);
-    transition: transform 0.3s ease;
+    transition: left 0.3s ease;
+    overflow-y: auto;
+    box-shadow: 2px 0 20px rgba(0, 0, 0, 0.3);
   }
   
   .menu.active {
-    transform: translateX(0);
+    left: 0;
+  }
+  
+  .menu a {
+    width: 100%;
+    text-align: left;
+    padding: 12px 15px;
   }
   
   .mobile-toggle {
     display: flex;
   }
   
+  .user-name {
+    display: none;
+  }
+  
   .search-panel {
     min-width: 280px;
+    right: auto;
+    left: 50%;
+    transform: translateX(-50%) translateY(-10px);
+  }
+  
+  .search-panel.active {
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+@media (max-width: 480px) {
+  .nav-container {
+    padding: 0 4%;
+  }
+  
+  .logo img {
+    height: 45px;
+  }
+  
+  .search-panel {
+    min-width: calc(100vw - 40px);
+  }
+  
+  .nav-actions {
+    gap: 10px;
   }
 }
 </style>
@@ -522,16 +590,30 @@ document.addEventListener('click', (e) => {
   }
 });
 
-// 📱 MENÚ MÓVIL
+// 🍔 MENÚ HAMBURGUESA
 const mobileToggle = document.getElementById('mobileToggle');
-const menu = document.querySelector('.menu');
+const mainMenu = document.getElementById('mainMenu');
 
 mobileToggle?.addEventListener('click', () => {
-  menu.classList.toggle('active');
+  mainMenu.classList.toggle('active');
   mobileToggle.classList.toggle('active');
+  
+  // Cerrar otros menús
+  searchPanel?.classList.remove('active');
+  userDropdown?.classList.remove('active');
 });
 
-// Actualizar contador del carrito en tiempo real
+// Cerrar menú al hacer clic en un enlace (mobile)
+mainMenu?.querySelectorAll('a').forEach(link => {
+  link.addEventListener('click', () => {
+    if (window.innerWidth <= 1024) {
+      mainMenu.classList.remove('active');
+      mobileToggle.classList.remove('active');
+    }
+  });
+});
+
+// Actualizar contador del carrito
 window.updateCartBadge = function(count) {
   const cartLink = document.querySelector('.cart-link');
   let badge = cartLink?.querySelector('.cart-badge');
@@ -540,7 +622,7 @@ window.updateCartBadge = function(count) {
     if (!badge) {
       badge = document.createElement('span');
       badge.className = 'cart-badge';
-      cartLink.querySelector('.cart-icon-wrapper').appendChild(badge);
+      cartLink.appendChild(badge);
     }
     badge.textContent = count;
   } else {

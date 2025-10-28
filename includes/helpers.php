@@ -39,7 +39,7 @@ function calcularTotalesCarrito($cart) {
  * Obtener contador del carrito
  */
 function getCartCount() {
-    safe_session_start(); // Usar la función segura
+    safe_session_start();
     
     $cart_count = 0;
     if (isset($_SESSION['cart'])) {
@@ -51,7 +51,7 @@ function getCartCount() {
 }
 
 /**
- * Sanitizar entrada - NOMBRE CORREGIDO
+ * Sanitizar entrada
  */
 function sanitizar($data) {
     if ($data === null) {
@@ -77,7 +77,7 @@ function verificarProducto($pdo, $id) {
 }
 
 /**
- * Función alternativa con nombre común - por si hay confusión
+ * Función alternativa con nombre común
  */
 function sanitize($data) {
     return sanitizar($data);
@@ -87,7 +87,7 @@ function sanitize($data) {
  * Verificar si el usuario está logueado
  */
 function usuarioLogueado() {
-    safe_session_start(); // Ahora esta función existe
+    safe_session_start();
     return isset($_SESSION['usuario_id']);
 }
 
@@ -95,7 +95,7 @@ function usuarioLogueado() {
  * Verificar si el usuario es administrador
  */
 function esAdmin() {
-    safe_session_start(); // Ahora esta función existe
+    safe_session_start();
     return isset($_SESSION['usuario_rol']) && $_SESSION['usuario_rol'] === 'admin';
 }
 
@@ -104,7 +104,7 @@ function esAdmin() {
  */
 function requerirAdmin() {
     if (!esAdmin()) {
-        header("Location: login.php");
+        header("Location: ../views/login.php");
         exit;
     }
 }
@@ -114,7 +114,7 @@ function requerirAdmin() {
  */
 function requerirLogin() {
     if (!usuarioLogueado()) {
-        header("Location: login.php");
+        header("Location: ../views/login.php");
         exit;
     }
 }

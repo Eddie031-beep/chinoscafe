@@ -1,30 +1,24 @@
-<?php 
+<?php
+// views/inventario.php
 session_start();
 require_once("../config/db.php");
-require_once("../includes/helpers.php"); // ✅ AGREGAR ESTA LÍNEA
-global $pdo;
+require_once("../includes/helpers.php");
 
-// Solo administradores pueden acceder
-if (!esAdmin()) {
-    header("Location: login.php");
-    exit;
-}
-
-// ... resto del código del archivo inventario.php sin cambios
-?>
+// Verificar que sea administrador
+requerirAdmin();
 
 // Manejar acciones (agregar, editar, eliminar)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $accion = $_POST['accion'] ?? '';
     
     if ($accion === 'agregar') {
-        $nombre = $_POST['nombre'] ?? '';
-        $descripcion = $_POST['descripcion'] ?? '';
-        $precio = $_POST['precio'] ?? 0;
-        $categoria = $_POST['categoria'] ?? 'Bebida Caliente';
-        $stock = $_POST['stock'] ?? 0;
-        $stock_minimo = $_POST['stock_minimo'] ?? 5;
-        $imagen = $_POST['imagen'] ?? 'default.jpg';
+        $nombre = sanitizar($_POST['nombre'] ?? '');
+        $descripcion = sanitizar($_POST['descripcion'] ?? '');
+        $precio = (float)($_POST['precio'] ?? 0);
+        $categoria = sanitizar($_POST['categoria'] ?? 'Bebida Caliente');
+        $stock = (int)($_POST['stock'] ?? 0);
+        $stock_minimo = (int)($_POST['stock_minimo'] ?? 5);
+        $imagen = sanitizar($_POST['imagen'] ?? 'default.jpg');
         
         $sql = "INSERT INTO productos (nombre, descripcion, precio, categoria, stock, stock_minimo, imagen) 
                 VALUES (:nombre, :descripcion, :precio, :categoria, :stock, :stock_minimo, :imagen)";
@@ -44,18 +38,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     
     if ($accion === 'editar') {
-        $id = $_POST['id'] ?? 0;
-        $nombre = $_POST['nombre'] ?? '';
-        $descripcion = $_POST['descripcion'] ?? '';
-        $precio = $_POST['precio'] ?? 0;
-        $categoria = $_POST['categoria'] ?? 'Bebida Caliente';
-        $stock = $_POST['stock'] ?? 0;
-        $stock_minimo = $_POST['stock_minimo'] ?? 5;
-        $imagen = $_POST['imagen'] ?? 'default.jpg';
+        $id = (int)($_POST['id'] ?? 0);
+        $nombre = sanitizar($_POST['nombre'] ?? '');
+        $descripcion = sanitizar($_POST['descripcion'] ?? '');
+        $precio = (float)($_POST['precio'] ?? 0);
+        $categoria = sanitizar($_POST['categoria'] ?? 'Bebida Caliente');
+        $stock = (int)($_POST['stock'] ?? 0);
+        $stock_minimo = (int)($_POST['stock_minimo'] ?? 5);
+        $imagen = sanitizar($_POST['imagen'] ?? 'default.jpg');
         
-        $sql = "UPDATE productos SET nombre=:nombre, descripcion=:descripcion, precio=:precio, 
-                categoria=:categoria, stock=:stock, stock_minimo=:stock_minimo, imagen=:imagen 
-                WHERE id=:id";
+        $sql = "UPDATE productos SET 
+                nombre = :nombre, 
+                descripcion = :descripcion, 
+                precio = :precio, 
+                categoria = :categoria, 
+                stock = :stock, 
+                stock_minimo = :stock_minimo, 
+                imagen = :imagen 
+                WHERE id = :id";
         $stmt = $pdo->prepare($sql);
         $stmt->execute([
             ':id' => $id,
@@ -73,8 +73,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     
     if ($accion === 'eliminar') {
-        $id = $_POST['id'] ?? 0;
-        $sql = "DELETE FROM productos WHERE id=:id";
+        $id = (int)($_POST['id'] ?? 0);
+        
+        // Desactivar en lugar de eliminar
+        $sql = "UPDATE productos SET activo = 0 WHERE id = :id";
         $stmt = $pdo->prepare($sql);
         $stmt->execute([':id' => $id]);
         
@@ -83,14 +85,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     
     if ($accion === 'ajustar_stock') {
-        $id = $_POST['id'] ?? 0;
-        $cantidad = $_POST['cantidad'] ?? 0;
+        $id = (int)($_POST['id'] ?? 0);
+        $cantidad = (int)($_POST['cantidad'] ?? 0);
         $tipo = $_POST['tipo'] ?? 'agregar';
         
         if ($tipo === 'agregar') {
             $sql = "UPDATE productos SET stock = stock + :cantidad WHERE id = :id";
         } else {
-            $sql = "UPDATE productos SET stock = stock - :cantidad WHERE id = :id AND stock >= :cantidad";
+            $sql = "UPDATE productos SET stock = GREATEST(0, stock - :cantidad) WHERE id = :id";
         }
         
         $stmt = $pdo->prepare($sql);
@@ -102,12 +104,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 // Obtener todos los productos
-$query = $pdo->query("SELECT * FROM productos ORDER BY nombre ASC");
+$query = $pdo->query("SELECT * FROM productos WHERE activo = 1 ORDER BY nombre ASC");
 $productos = $query->fetchAll(PDO::FETCH_ASSOC);
 
-// Productos con bajo stock
-$queryBajo = $pdo->query("SELECT * FROM productos WHERE stock <= stock_minimo ORDER BY stock ASC");
+// Productos con bajo stock - INICIALIZAR AQUÍ
+$queryBajo = $pdo->query("SELECT * FROM productos WHERE activo = 1 AND stock <= stock_minimo ORDER BY stock ASC");
 $productosBajoStock = $queryBajo->fetchAll(PDO::FETCH_ASSOC);
+
+// Categorías disponibles
+$categorias = ['Bebida Caliente', 'Bebida Fría', 'Repostería', 'Snacks', 'Granos', 'Otros'];
 ?>
 
 <!DOCTYPE html>
@@ -118,12 +123,13 @@ $productosBajoStock = $queryBajo->fetchAll(PDO::FETCH_ASSOC);
     <title>Inventario | Chinos Café</title>
     <link rel="stylesheet" href="../assets/css/style.css">
     <style>
-        .inventario {
+        .inventario-container {
             padding: 50px 6%;
             background: var(--crema);
+            min-height: calc(100vh - 90px);
         }
         
-        .inv-header {
+        .page-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -132,109 +138,130 @@ $productosBajoStock = $queryBajo->fetchAll(PDO::FETCH_ASSOC);
             gap: 15px;
         }
         
-        .inv-header h2 {
+        .page-header h2 {
             color: var(--cafe-oscuro);
             margin: 0;
         }
         
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
         .btn-primary {
-            background: var(--cafe-medio);
+            background: linear-gradient(135deg, var(--cafe-medio), var(--cafe-claro));
             color: #fff;
             padding: 12px 24px;
-            border: none;
             border-radius: 8px;
-            cursor: pointer;
             text-decoration: none;
-            display: inline-block;
             font-weight: 600;
-            transition: background 0.3s;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
         }
         
         .btn-primary:hover {
-            background: var(--cafe-oscuro);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(139, 94, 60, 0.4);
         }
         
-        .alert {
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-        }
-        
-        .alert-success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-        
-        .alert-warning {
+        /* Alertas de bajo stock */
+        .alertas-stock {
             background: #fff3cd;
-            color: #856404;
-            border: 1px solid #ffeaa7;
-        }
-        
-        .stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
+            border-left: 4px solid #ffc107;
+            border-radius: 8px;
+            padding: 20px;
             margin-bottom: 30px;
         }
         
-        .stat-card {
+        .alertas-stock h3 {
+            margin: 0 0 15px 0;
+            color: #856404;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .alerta-lista {
+            display: grid;
+            gap: 10px;
+        }
+        
+        .alerta-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 12px;
             background: #fff;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            text-align: center;
+            border-radius: 8px;
         }
         
-        .stat-card h3 {
-            margin: 0 0 10px 0;
-            color: var(--cafe-medio);
-            font-size: 2rem;
-        }
-        
-        .stat-card p {
-            margin: 0;
-            color: #666;
-            font-size: 0.9rem;
-        }
-        
-        .tabla {
-            width: 100%;
-            border-collapse: collapse;
-            background: #fff;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 6px 14px rgba(0,0,0,0.12);
-        }
-        
-        .tabla thead {
-            background: var(--cafe-oscuro);
-            color: #fff;
-        }
-        
-        .tabla th,
-        .tabla td {
-            padding: 14px;
-            text-align: left;
-            border-bottom: 1px solid #eee;
-        }
-        
-        .tabla tbody tr:hover {
-            background: #f8f6f1;
-        }
-        
-        .tabla img {
+        .alerta-img {
             width: 50px;
             height: 50px;
             object-fit: cover;
             border-radius: 8px;
         }
         
+        .alerta-info {
+            flex: 1;
+        }
+        
+        .alerta-nombre {
+            font-weight: 600;
+            color: var(--texto);
+        }
+        
+        .alerta-stock {
+            font-size: 0.85rem;
+            color: #856404;
+        }
+        
+        /* Tabla de productos */
+        .productos-table-container {
+            background: #fff;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            overflow-x: auto;
+        }
+        
+        .productos-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .productos-table thead {
+            background: var(--cafe-oscuro);
+            color: #fff;
+        }
+        
+        .productos-table th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+        
+        .productos-table td {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .productos-table tbody tr:hover {
+            background: #f8f6f1;
+        }
+        
+        .producto-img {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+        
         .stock-badge {
             display: inline-block;
-            padding: 4px 12px;
-            border-radius: 12px;
+            padding: 5px 12px;
+            border-radius: 20px;
             font-size: 0.85rem;
             font-weight: 600;
         }
@@ -244,51 +271,65 @@ $productosBajoStock = $queryBajo->fetchAll(PDO::FETCH_ASSOC);
             color: #155724;
         }
         
-        .stock-bajo {
+        .stock-low {
             background: #fff3cd;
             color: #856404;
         }
         
-        .stock-critico {
+        .stock-critical {
             background: #f8d7da;
             color: #721c24;
         }
         
-        .acciones {
+        .precio-badge {
+            font-weight: 700;
+            color: var(--cafe-medio);
+            font-size: 1.1rem;
+        }
+        
+        .table-actions {
             display: flex;
             gap: 8px;
         }
         
         .btn-sm {
             padding: 6px 12px;
-            border: none;
             border-radius: 6px;
+            border: none;
             cursor: pointer;
             font-size: 0.85rem;
-            text-decoration: none;
-            display: inline-block;
-            transition: opacity 0.2s;
-        }
-        
-        .btn-sm:hover {
-            opacity: 0.8;
+            font-weight: 600;
+            transition: all 0.3s;
         }
         
         .btn-edit {
-            background: #17a2b8;
+            background: #4CAF50;
             color: #fff;
+        }
+        
+        .btn-edit:hover {
+            background: #388E3C;
         }
         
         .btn-stock {
-            background: #28a745;
+            background: #2196F3;
             color: #fff;
+        }
+        
+        .btn-stock:hover {
+            background: #1565C0;
         }
         
         .btn-delete {
-            background: #dc3545;
+            background: #f44336;
             color: #fff;
         }
         
+        .btn-delete:hover {
+            background: #c62828;
+        }
+        
+        /* MODAL */
         .modal {
             display: none;
             position: fixed;
@@ -296,20 +337,20 @@ $productosBajoStock = $queryBajo->fetchAll(PDO::FETCH_ASSOC);
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.6);
-            z-index: 9999;
+            background: rgba(0,0,0,0.5);
+            z-index: 2000;
             align-items: center;
             justify-content: center;
         }
         
-        .modal.show {
+        .modal.active {
             display: flex;
         }
         
         .modal-content {
             background: #fff;
-            padding: 30px;
             border-radius: 12px;
+            padding: 30px;
             max-width: 600px;
             width: 90%;
             max-height: 90vh;
@@ -328,33 +369,51 @@ $productosBajoStock = $queryBajo->fetchAll(PDO::FETCH_ASSOC);
             color: var(--cafe-oscuro);
         }
         
-        .close-modal {
+        .modal-close {
             background: none;
             border: none;
-            font-size: 28px;
+            font-size: 1.5rem;
             cursor: pointer;
             color: #999;
         }
         
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+        
         .form-group {
-            margin-bottom: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .form-group.full-width {
+            grid-column: 1 / -1;
         }
         
         .form-group label {
             display: block;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
+            font-weight: 600;
             color: var(--texto);
-            font-weight: 500;
         }
         
         .form-group input,
-        .form-group textarea,
-        .form-group select {
+        .form-group select,
+        .form-group textarea {
             width: 100%;
             padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
             font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--cafe-medio);
         }
         
         .form-group textarea {
@@ -365,31 +424,62 @@ $productosBajoStock = $queryBajo->fetchAll(PDO::FETCH_ASSOC);
         .form-actions {
             display: flex;
             gap: 10px;
-            justify-content: flex-end;
-            margin-top: 20px;
+            margin-top: 25px;
         }
         
-        .btn-secondary {
-            background: #6c757d;
+        .btn-cancel {
+            flex: 1;
+            padding: 10px;
+            background: #999;
             color: #fff;
-            padding: 10px 20px;
             border: none;
-            border-radius: 6px;
+            border-radius: 8px;
             cursor: pointer;
+            font-weight: 600;
+        }
+        
+        .btn-submit {
+            flex: 2;
+            padding: 10px;
+            background: var(--cafe-medio);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        
+        .alert {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border-left: 4px solid #28a745;
         }
         
         @media (max-width: 768px) {
-            .tabla {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .table-actions {
+                flex-direction: column;
+            }
+            
+            .productos-table {
                 font-size: 0.85rem;
             }
             
-            .tabla th,
-            .tabla td {
+            .productos-table th,
+            .productos-table td {
                 padding: 10px 8px;
-            }
-            
-            .acciones {
-                flex-direction: column;
             }
         }
     </style>
@@ -397,189 +487,215 @@ $productosBajoStock = $queryBajo->fetchAll(PDO::FETCH_ASSOC);
 <body>
     <?php include("../includes/header.php"); ?>
 
-    <main class="inventario">
-        <div class="inv-header">
+    <main class="inventario-container">
+        <div class="page-header">
             <h2>📦 Gestión de Inventario</h2>
-            <button class="btn-primary" onclick="abrirModalAgregar()">+ Agregar Producto</button>
+            <div class="header-actions">
+                <button class="btn-primary" onclick="openModal('agregar')">
+                    ➕ Agregar Producto
+                </button>
+            </div>
         </div>
 
         <?php if (isset($_GET['msg'])): ?>
             <div class="alert alert-success">
+                <span>✅</span>
                 <?php
-                    $msg = $_GET['msg'];
-                    if ($msg === 'agregado') echo '✅ Producto agregado exitosamente';
-                    if ($msg === 'editado') echo '✅ Producto actualizado exitosamente';
-                    if ($msg === 'eliminado') echo '✅ Producto eliminado exitosamente';
-                    if ($msg === 'stock_ajustado') echo '✅ Stock ajustado correctamente';
+                    if ($_GET['msg'] === 'agregado') echo 'Producto agregado exitosamente';
+                    if ($_GET['msg'] === 'editado') echo 'Producto actualizado exitosamente';
+                    if ($_GET['msg'] === 'eliminado') echo 'Producto eliminado exitosamente';
+                    if ($_GET['msg'] === 'stock_ajustado') echo 'Stock ajustado exitosamente';
                 ?>
             </div>
         <?php endif; ?>
 
         <?php if (count($productosBajoStock) > 0): ?>
-            <div class="alert alert-warning">
-                ⚠️ <strong><?= count($productosBajoStock) ?> producto(s)</strong> con stock bajo o crítico.
+            <div class="alertas-stock">
+                <h3>
+                    <span>⚠️</span>
+                    Productos con Stock Bajo (<?= count($productosBajoStock) ?>)
+                </h3>
+                <div class="alerta-lista">
+                    <?php foreach ($productosBajoStock as $p): ?>
+                        <div class="alerta-item">
+                            <img src="../assets/img/<?= htmlspecialchars($p['imagen']) ?>" 
+                                 alt="<?= htmlspecialchars($p['nombre']) ?>" 
+                                 class="alerta-img">
+                            <div class="alerta-info">
+                                <div class="alerta-nombre"><?= htmlspecialchars($p['nombre']) ?></div>
+                                <div class="alerta-stock">
+                                    Stock actual: <strong><?= $p['stock'] ?></strong> / 
+                                    Mínimo: <?= $p['stock_minimo'] ?>
+                                </div>
+                            </div>
+                            <button class="btn-sm btn-stock" onclick="ajustarStock(<?= $p['id'] ?>, '<?= htmlspecialchars($p['nombre']) ?>')">
+                                Ajustar Stock
+                            </button>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
             </div>
         <?php endif; ?>
 
-        <!-- Estadísticas -->
-        <div class="stats">
-            <div class="stat-card">
-                <h3><?= count($productos) ?></h3>
-                <p>Total Productos</p>
-            </div>
-            <div class="stat-card">
-                <h3><?= array_sum(array_column($productos, 'stock')) ?></h3>
-                <p>Unidades en Stock</p>
-            </div>
-            <div class="stat-card">
-                <h3><?= count($productosBajoStock) ?></h3>
-                <p>Productos Bajo Stock</p>
-            </div>
-            <div class="stat-card">
-                <h3>$<?= number_format(array_sum(array_map(fn($p) => $p['precio'] * $p['stock'], $productos)), 2) ?></h3>
-                <p>Valor Total Inventario</p>
-            </div>
-        </div>
-
-        <!-- Tabla de Productos -->
-        <table class="tabla">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Imagen</th>
-                    <th>Producto</th>
-                    <th>Categoría</th>
-                    <th>Precio</th>
-                    <th>Stock</th>
-                    <th>Estado</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php foreach ($productos as $prod): ?>
-                    <?php
-                        $stockClass = 'stock-ok';
-                        $stockLabel = 'Normal';
-                        if ($prod['stock'] <= 0) {
-                            $stockClass = 'stock-critico';
-                            $stockLabel = 'Agotado';
-                        } elseif ($prod['stock'] <= $prod['stock_minimo']) {
-                            $stockClass = 'stock-bajo';
-                            $stockLabel = 'Bajo';
-                        }
-                    ?>
+        <div class="productos-table-container">
+            <table class="productos-table">
+                <thead>
                     <tr>
-                        <td><?= $prod['id'] ?></td>
-                        <td>
-                            <img src="../assets/img/<?= htmlspecialchars($prod['imagen']) ?>" alt="<?= htmlspecialchars($prod['nombre']) ?>">
-                        </td>
-                        <td>
-                            <strong><?= htmlspecialchars($prod['nombre']) ?></strong><br>
-                            <small style="color: #666;"><?= htmlspecialchars(substr($prod['descripcion'], 0, 50)) ?>...</small>
-                        </td>
-                        <td><?= htmlspecialchars($prod['categoria']) ?></td>
-                        <td>$<?= number_format($prod['precio'], 2) ?></td>
-                        <td><?= $prod['stock'] ?> / <?= $prod['stock_minimo'] ?></td>
-                        <td><span class="stock-badge <?= $stockClass ?>"><?= $stockLabel ?></span></td>
-                        <td class="acciones">
-                            <button class="btn-sm btn-edit" onclick='editarProducto(<?= json_encode($prod) ?>)'>✏️ Editar</button>
-                            <button class="btn-sm btn-stock" onclick="ajustarStock(<?= $prod['id'] ?>, '<?= htmlspecialchars($prod['nombre']) ?>')">📊 Stock</button>
-                            <button class="btn-sm btn-delete" onclick="eliminarProducto(<?= $prod['id'] ?>, '<?= htmlspecialchars($prod['nombre']) ?>')">🗑️</button>
-                        </td>
+                        <th>Imagen</th>
+                        <th>Producto</th>
+                        <th>Categoría</th>
+                        <th>Precio</th>
+                        <th>Stock</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
                     </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    <?php foreach ($productos as $p): ?>
+                        <tr>
+                            <td>
+                                <img src="../assets/img/<?= htmlspecialchars($p['imagen']) ?>" 
+                                     alt="<?= htmlspecialchars($p['nombre']) ?>" 
+                                     class="producto-img">
+                            </td>
+                            <td>
+                                <strong><?= htmlspecialchars($p['nombre']) ?></strong>
+                                <?php if (!empty($p['descripcion'])): ?>
+                                    <br><small style="color: #666;"><?= htmlspecialchars(substr($p['descripcion'], 0, 50)) ?>...</small>
+                                <?php endif; ?>
+                            </td>
+                            <td><?= htmlspecialchars($p['categoria']) ?></td>
+                            <td>
+                                <span class="precio-badge">$<?= number_format($p['precio'], 2) ?></span>
+                            </td>
+                            <td>
+                                <strong><?= $p['stock'] ?></strong> unidades
+                            </td>
+                            <td>
+                                <?php
+                                    if ($p['stock'] <= 0) {
+                                        echo '<span class="stock-badge stock-critical">Sin Stock</span>';
+                                    } elseif ($p['stock'] <= $p['stock_minimo']) {
+                                        echo '<span class="stock-badge stock-low">Stock Bajo</span>';
+                                    } else {
+                                        echo '<span class="stock-badge stock-ok">Stock OK</span>';
+                                    }
+                                ?>
+                            </td>
+                            <td>
+                                <div class="table-actions">
+                                    <button class="btn-sm btn-edit" onclick="editarProducto(<?= htmlspecialchars(json_encode($p)) ?>)">
+                                        ✏️ Editar
+                                    </button>
+                                    <button class="btn-sm btn-stock" onclick="ajustarStock(<?= $p['id'] ?>, '<?= htmlspecialchars($p['nombre']) ?>')">
+                                        📊 Stock
+                                    </button>
+                                    <button class="btn-sm btn-delete" onclick="eliminarProducto(<?= $p['id'] ?>)">
+                                        🗑️
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
     </main>
 
-    <!-- Modal Agregar/Editar Producto -->
-    <div id="modalProducto" class="modal">
+    <!-- MODAL PRODUCTO -->
+    <div class="modal" id="productoModal">
         <div class="modal-content">
             <div class="modal-header">
                 <h3 id="modalTitle">Agregar Producto</h3>
-                <button class="close-modal" onclick="cerrarModal('modalProducto')">&times;</button>
+                <button class="modal-close" onclick="closeModal('productoModal')">✕</button>
             </div>
-            <form method="POST" id="formProducto">
+            
+            <form method="POST" id="productoForm">
                 <input type="hidden" name="accion" id="accion" value="agregar">
                 <input type="hidden" name="id" id="productoId">
                 
-                <div class="form-group">
-                    <label>Nombre *</label>
-                    <input type="text" name="nombre" id="nombre" required>
-                </div>
-                
-                <div class="form-group">
-                    <label>Descripción</label>
-                    <textarea name="descripcion" id="descripcion"></textarea>
-                </div>
-                
-                <div class="form-group">
-                    <label>Precio ($) *</label>
-                    <input type="number" step="0.01" name="precio" id="precio" required>
-                </div>
-                
-                <div class="form-group">
-                    <label>Categoría *</label>
-                    <select name="categoria" id="categoria" required>
-                        <option value="Bebida Caliente">Bebida Caliente</option>
-                        <option value="Bebida Fría">Bebida Fría</option>
-                        <option value="Postre">Postre</option>
-                        <option value="Panadería">Panadería</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label>Stock Inicial *</label>
-                    <input type="number" name="stock" id="stock" required>
-                </div>
-                
-                <div class="form-group">
-                    <label>Stock Mínimo *</label>
-                    <input type="number" name="stock_minimo" id="stock_minimo" value="5" required>
-                </div>
-                
-                <div class="form-group">
-                    <label>Nombre de Imagen</label>
-                    <input type="text" name="imagen" id="imagen" placeholder="ejemplo.jpg">
+                <div class="form-grid">
+                    <div class="form-group full-width">
+                        <label>Nombre del Producto *</label>
+                        <input type="text" name="nombre" id="nombre" required>
+                    </div>
+                    
+                    <div class="form-group full-width">
+                        <label>Descripción</label>
+                        <textarea name="descripcion" id="descripcion"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Categoría *</label>
+                        <select name="categoria" id="categoria" required>
+                            <?php foreach ($categorias as $cat): ?>
+                                <option value="<?= $cat ?>"><?= $cat ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Precio *</label>
+                        <input type="number" step="0.01" name="precio" id="precio" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Stock Inicial *</label>
+                        <input type="number" name="stock" id="stock" value="0" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Stock Mínimo *</label>
+                        <input type="number" name="stock_minimo" id="stock_minimo" value="5" required>
+                    </div>
+                    
+                    <div class="form-group full-width">
+                        <label>Imagen (nombre del archivo)</label>
+                        <input type="text" name="imagen" id="imagen" placeholder="cafe-latte.jpg">
+                        <small style="color: #666;">La imagen debe estar en assets/img/</small>
+                    </div>
                 </div>
                 
                 <div class="form-actions">
-                    <button type="button" class="btn-secondary" onclick="cerrarModal('modalProducto')">Cancelar</button>
-                    <button type="submit" class="btn-primary">Guardar</button>
+                    <button type="button" class="btn-cancel" onclick="closeModal('productoModal')">Cancelar</button>
+                    <button type="submit" class="btn-submit">Guardar Producto</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Modal Ajustar Stock -->
-    <div id="modalStock" class="modal">
-        <div class="modal-content">
+    <!-- MODAL AJUSTAR STOCK -->
+    <div class="modal" id="stockModal">
+        <div class="modal-content" style="max-width: 400px;">
             <div class="modal-header">
                 <h3>Ajustar Stock</h3>
-                <button class="close-modal" onclick="cerrarModal('modalStock')">&times;</button>
+                <button class="modal-close" onclick="closeModal('stockModal')">✕</button>
             </div>
-            <form method="POST">
+            
+            <form method="POST" id="stockForm">
                 <input type="hidden" name="accion" value="ajustar_stock">
                 <input type="hidden" name="id" id="stockProductoId">
                 
-                <p id="stockProductoNombre" style="margin-bottom: 20px; color: var(--cafe-oscuro); font-weight: 600;"></p>
+                <div class="form-group">
+                    <label id="stockProductoNombre" style="color: var(--cafe-oscuro); font-size: 1.1rem;"></label>
+                </div>
                 
                 <div class="form-group">
                     <label>Tipo de Ajuste</label>
-                    <select name="tipo" id="tipoAjuste" required>
-                        <option value="agregar">➕ Agregar Stock</option>
-                        <option value="retirar">➖ Retirar Stock</option>
+                    <select name="tipo" id="stockTipo" required>
+                        <option value="agregar">➕ Agregar al Stock</option>
+                        <option value="quitar">➖ Quitar del Stock</option>
                     </select>
                 </div>
                 
                 <div class="form-group">
                     <label>Cantidad</label>
-                    <input type="number" name="cantidad" id="cantidad" min="1" required>
+                    <input type="number" name="cantidad" id="stockCantidad" min="1" required>
                 </div>
                 
                 <div class="form-actions">
-                    <button type="button" class="btn-secondary" onclick="cerrarModal('modalStock')">Cancelar</button>
-                    <button type="submit" class="btn-primary">Ajustar Stock</button>
+                    <button type="button" class="btn-cancel" onclick="closeModal('stockModal')">Cancelar</button>
+                    <button type="submit" class="btn-submit">Ajustar</button>
                 </div>
             </form>
         </div>
@@ -588,36 +704,42 @@ $productosBajoStock = $queryBajo->fetchAll(PDO::FETCH_ASSOC);
     <?php include("../includes/footer.php"); ?>
 
     <script>
-        function abrirModalAgregar() {
+        function openModal(accion) {
+            document.getElementById('productoModal').classList.add('active');
+            document.getElementById('accion').value = accion;
             document.getElementById('modalTitle').textContent = 'Agregar Producto';
-            document.getElementById('accion').value = 'agregar';
-            document.getElementById('formProducto').reset();
-            document.getElementById('productoId').value = '';
-            document.getElementById('modalProducto').classList.add('show');
+            document.getElementById('productoForm').reset();
         }
-
+        
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+        
         function editarProducto(producto) {
-            document.getElementById('modalTitle').textContent = 'Editar Producto';
+            document.getElementById('productoModal').classList.add('active');
             document.getElementById('accion').value = 'editar';
+            document.getElementById('modalTitle').textContent = 'Editar Producto';
+            
             document.getElementById('productoId').value = producto.id;
-            document.getElementById('nombre').value = producto.nombre;
-            document.getElementById('descripcion').value = producto.descripcion;
-            document.getElementById('precio').value = producto.precio;
-            document.getElementById('categoria').value = producto.categoria;
-            document.getElementById('stock').value = producto.stock;
-            document.getElementById('stock_minimo').value = producto.stock_minimo;
-            document.getElementById('imagen').value = producto.imagen;
-            document.getElementById('modalProducto').classList.add('show');
+            document.getElementById('nombre').value = producto.nombre || '';
+            document.getElementById('descripcion').value = producto.descripcion || '';
+            document.getElementById('categoria').value = producto.categoria || '';
+            document.getElementById('precio').value = producto.precio || '';
+            document.getElementById('stock').value = producto.stock || '';
+            document.getElementById('stock_minimo').value = producto.stock_minimo || '';
+            document.getElementById('imagen').value = producto.imagen || '';
         }
-
+        
         function ajustarStock(id, nombre) {
+            document.getElementById('stockModal').classList.add('active');
             document.getElementById('stockProductoId').value = id;
-            document.getElementById('stockProductoNombre').textContent = '📦 ' + nombre;
-            document.getElementById('modalStock').classList.add('show');
+            document.getElementById('stockProductoNombre').textContent = nombre;
+            document.getElementById('stockForm').reset();
+            document.getElementById('stockProductoId').value = id;
         }
-
-        function eliminarProducto(id, nombre) {
-            if (confirm('¿Estás seguro de eliminar "' + nombre + '"?')) {
+        
+        function eliminarProducto(id) {
+            if (confirm('¿Estás seguro de eliminar este producto?')) {
                 const form = document.createElement('form');
                 form.method = 'POST';
                 form.innerHTML = `
@@ -628,16 +750,12 @@ $productosBajoStock = $queryBajo->fetchAll(PDO::FETCH_ASSOC);
                 form.submit();
             }
         }
-
-        function cerrarModal(modalId) {
-            document.getElementById(modalId).classList.remove('show');
-        }
-
+        
         // Cerrar modal al hacer clic fuera
         document.querySelectorAll('.modal').forEach(modal => {
             modal.addEventListener('click', (e) => {
                 if (e.target === modal) {
-                    modal.classList.remove('show');
+                    modal.classList.remove('active');
                 }
             });
         });
