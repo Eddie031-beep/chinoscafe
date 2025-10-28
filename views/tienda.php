@@ -3,6 +3,28 @@ session_start();
 require_once("../config/db.php");
 global $pdo;
 ?>
+
+<?php
+// Base URL del proyecto: de /chinoscafe/views -> /chinoscafe
+$__web_current = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');   // /chinoscafe/views
+$__web_root    = rtrim(dirname($__web_current), '/');            // /chinoscafe
+$IMG_BASE      = $__web_root . '/img/';                          // /chinoscafe/img/
+$ASSETS_IMG    = $__web_root . '/assets/img/';                   // fallback
+
+// helper para pintar <img> con fallback silencioso
+function img_src_producto($fname, $IMG_BASE, $ASSETS_IMG) {
+    $fname = htmlspecialchars($fname ?: 'default.jpg', ENT_QUOTES, 'UTF-8');
+    // Usamos ruta absoluta desde raíz del proyecto para evitar problemas de niveles
+    $primary = $IMG_BASE . $fname;       // /chinoscafe/img/archivo.jpg
+    $fallback = $ASSETS_IMG . $fname;    // /chinoscafe/assets/img/archivo.jpg
+    $placeholder = $ASSETS_IMG . 'placeholder.jpg';
+    // onerror va encadenando fallbacks
+    return $primary . "\" onerror=\"this.onerror=null;this.src='" . $fallback .
+           "';this.onerror=function(){this.src='" . $placeholder . "';}";
+}
+?>
+
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -12,6 +34,8 @@ global $pdo;
     <link rel="stylesheet" href="../assets/css/style.css">
     <link rel="stylesheet" href="../assets/css/tienda.css">
     <style>
+
+        
         /* FILTROS MODERNOS */
         .filtros-modernos {
             background: #fff;
@@ -348,6 +372,10 @@ global $pdo;
                 max-width: 100%;
             }
         }
+            /* 🔧 Forzar la ruta del hero a /img/ (tu CSS en assets usa ../img relativo a assets) */
+    .page-tienda .hero-tienda{
+    background: url('../img/hero-cafe2.jpg') center/cover no-repeat fixed !important;
+    }
     </style>
 </head>
 <body class="page-tienda">
@@ -447,7 +475,9 @@ global $pdo;
             <?php foreach ($productos as $p): ?>
                 <div class="producto-card" data-categoria="<?= htmlspecialchars($p['categoria']) ?>">
                     <div class="producto-image-wrapper">
-                        <img src="../img/<?= htmlspecialchars($p['imagen']) ?>" alt="<?= htmlspecialchars($p['nombre']) ?>" class="producto-image">
+                        <img src="<?= img_src_producto($p['imagen'], $IMG_BASE, $ASSETS_IMG) ?>" 
+                            alt="<?= htmlspecialchars($p['nombre']) ?>" class="producto-image">
+
                         <span class="producto-badge"><?= htmlspecialchars($p['categoria']) ?></span>
                     </div>
                     <div class="producto-info">
@@ -480,5 +510,360 @@ global $pdo;
 
     <?php include("../includes/footer.php"); ?>
     <script src="../js/tienda.js"></script>
+
+    <script>
+    /* ===========================
+   PARCHE LIGERO PARA TIENDA
+   - Debounce en búsqueda
+   - Añadir al carrito vía fetch (sin navegar)
+   =========================== */
+
+/* ---- 1) BÚSQUEDA CON DEBOUNCE (evita lag) ---- */
+(function() {
+  const input = document.getElementById('searchProducts');
+  if (!input) return;
+
+  const grid = document.querySelector('.productos-grid');
+  if (!grid) return;
+
+  const items = Array.from(grid.querySelectorAll('.producto-card'));
+  const nombreSel = '.producto-nombre';
+  const descSel = '.producto-descripcion';
+
+  let t = null;
+  const doFilter = () => {
+    const q = (input.value || '').trim().toLowerCase();
+    let visibles = 0;
+    items.forEach(card => {
+      const nom = (card.querySelector(nombreSel)?.textContent || '').toLowerCase();
+      const des = (card.querySelector(descSel)?.textContent || '').toLowerCase();
+      const show = !q || nom.includes(q) || des.includes(q);
+      card.style.display = show ? '' : 'none';
+      if (show) visibles++;
+    });
+    const countEl = document.getElementById('productos-count');
+    if (countEl) countEl.textContent = visibles;
+    // Actualiza contadores por categoría
+    updateCategoryCounters();
+  };
+
+  // Debounce: ejecuta 250ms después de dejar de teclear
+  const debounced = () => {
+    if (t) clearTimeout(t);
+    t = setTimeout(doFilter, 250);
+  };
+
+  // Forzamos nuestro handler (captura) para que tenga prioridad
+  input.addEventListener('input', debounced, true);
+
+  function updateCategoryCounters() {
+    const cats = {
+      'Bebida Caliente': 0,
+      'Bebida Fría': 0,
+      'Postre': 0,
+      'Panadería': 0
+    };
+    let totalVisibles = 0;
+
+    items.forEach(card => {
+      if (card.style.display !== 'none') {
+        totalVisibles++;
+        const c = card.getAttribute('data-categoria') || '';
+        if (c in cats) cats[c]++;
+      }
+    });
+
+    const setTxt = (id, txt) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = txt;
+    };
+
+    setTxt('count-todos', totalVisibles + ' producto(s)');
+    setTxt('count-calientes', cats['Bebida Caliente']);
+    setTxt('count-frias', cats['Bebida Fría']);
+    setTxt('count-postres', cats['Postre']);
+    setTxt('count-panaderia', cats['Panadería']);
+  }
+
+  // Inicial: cuenta visibles actuales
+  doFilter();
+})();
+
+/* ---- 2) AÑADIR AL CARRITO POR AJAX (evita ver JSON en pantalla) ---- */
+(function () {
+  // Intercepta cualquier form que apunte a php/cart_add.php
+  document.addEventListener('submit', async function(e) {
+    const form = e.target;
+    if (!form.matches('form[action$="php/cart_add.php"]')) return;
+
+    e.preventDefault(); // Evita navegar a la respuesta JSON
+
+    try {
+      const fd = new FormData(form);
+      const res = await fetch(form.action, {
+        method: 'POST',
+        body: fd,
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+      });
+
+      // Intenta parsear a JSON; si no, cae a texto
+      let data;
+      const txt = await res.text();
+      try { data = JSON.parse(txt); } catch { data = { ok: false, msg: txt }; }
+
+      if (data && data.ok) {
+        toast('Producto añadido al carrito');
+        // Si tienes un badge de carrito con id="cart-count", lo actualiza
+        const badge = document.querySelector('#cart-count, .cart-count, [data-cart-count]');
+        if (badge && typeof data.count !== 'undefined') badge.textContent = data.count;
+      } else {
+        toast('No se pudo añadir al carrito', true);
+        console.warn('Respuesta carrito:', data);
+      }
+    } catch (err) {
+      console.error(err);
+      toast('Error de red al añadir', true);
+    }
+  }, true); // captura: prioridad sobre otros listeners
+
+  // Mini toast sin dependencias
+  function toast(msg, error=false) {
+    const t = document.createElement('div');
+    t.textContent = msg;
+    t.style.position = 'fixed';
+    t.style.right = '20px';
+    t.style.bottom = '20px';
+    t.style.padding = '12px 16px';
+    t.style.borderRadius = '10px';
+    t.style.boxShadow = '0 8px 24px rgba(0,0,0,.15)';
+    t.style.background = error ? '#b00020' : '#2e7d32';
+    t.style.color = '#fff';
+    t.style.zIndex = '9999';
+    t.style.fontWeight = '600';
+    document.body.appendChild(t);
+    setTimeout(()=>{ t.style.opacity='0'; t.style.transition='opacity .3s'; }, 1600);
+    setTimeout(()=> t.remove(), 2000);
+  }
+})();
+</script>
+
+<script>
+/* ==========================================
+   PARCHE LÓGICA TIENDA (sin borrar nada)
+   - Filtro por categoría funciona y actualiza conteos
+   - Buscador con debounce + lista y scroll al producto
+   - Añadir al carrito por AJAX y sube el contador
+   - Imágenes con fallback si falta archivo
+========================================== */
+
+/* ---------- Utilidades ---------- */
+function $all(sel, root=document){ return Array.from(root.querySelectorAll(sel)); }
+function setText(el, txt){ if(el) el.textContent = txt; }
+
+/* ---------- 0) Mejora: fallback de imágenes ---------- */
+(function attachImageFallbacks(){
+  $all('.producto-card img').forEach(img=>{
+    img.addEventListener('error', ()=>{
+      // Fallback (ajusta si tienes un placeholder propio)
+      img.src = '../assets/img/placeholder.jpg';
+    }, {once:true});
+  });
+})();
+
+/* ---------- 1) Filtro por categoría + conteos ---------- */
+(function categoryFilter(){
+  const grid = document.querySelector('.productos-grid');
+  if(!grid) return;
+  const cards = ()=> $all('.producto-card', grid);
+  const btns  = $all('.filtro-card');
+
+  function applyFilter(cat){
+    let visibles = 0;
+    cards().forEach(card=>{
+      const c = card.getAttribute('data-categoria') || '';
+      const show = (cat === 'todos') || (c === cat);
+      card.style.display = show ? '' : 'none';
+      if (show) visibles++;
+    });
+    const countEl = document.getElementById('productos-count');
+    setText(countEl, visibles);
+
+    // actualizar contadores por categoría visibles
+    const cats = {
+      'Bebida Caliente': 0,
+      'Bebida Fría': 0,
+      'Postre': 0,
+      'Panadería': 0
+    };
+    cards().forEach(card=>{
+      if (card.style.display !== 'none') {
+        const c = card.getAttribute('data-categoria') || '';
+        if (c in cats) cats[c]++;
+      }
+    });
+    setText(document.getElementById('count-todos'),    visibles + ' producto(s)');
+    setText(document.getElementById('count-calientes'), cats['Bebida Caliente']);
+    setText(document.getElementById('count-frias'),     cats['Bebida Fría']);
+    setText(document.getElementById('count-postres'),   cats['Postre']);
+    setText(document.getElementById('count-panaderia'), cats['Panadería']);
+  }
+
+  btns.forEach(btn=>{
+    btn.addEventListener('click', (e)=>{
+      btns.forEach(b=>b.classList.remove('activo'));
+      btn.classList.add('activo');
+      applyFilter(btn.dataset.categoria || 'todos');
+    }, true); // captura para tener prioridad
+  });
+
+  // inicial (Todos)
+  applyFilter('todos');
+})();
+
+/* ---------- 2) Buscador con debounce + navegación al producto ---------- */
+(function searchableJump(){
+  const input = document.getElementById('searchProducts');
+  const grid  = document.querySelector('.productos-grid');
+  if (!input || !grid) return;
+
+  const cards = $all('.producto-card', grid);
+  // Asegura IDs para poder hacer scroll
+  cards.forEach((card, idx)=>{
+    if (!card.id) card.id = 'prod-' + (card.dataset.id || idx + 1);
+  });
+
+  // Crea lista de sugerencias simple
+  const list = document.createElement('div');
+  list.style.position = 'absolute';
+  list.style.left = '0';
+  list.style.right = '0';
+  list.style.top = '110%';
+  list.style.background = '#fff';
+  list.style.border = '1px solid #eee';
+  list.style.borderRadius = '10px';
+  list.style.boxShadow = '0 12px 30px rgba(0,0,0,.08)';
+  list.style.padding = '6px';
+  list.style.zIndex = '9999';
+  list.style.display = 'none';
+  input.parentElement.style.position = 'relative';
+  input.parentElement.appendChild(list);
+
+  let t = null;
+  function renderSuggestions(q){
+    list.innerHTML = '';
+    if (!q) { list.style.display = 'none'; return; }
+    const LQ = q.toLowerCase();
+    const results = cards
+      .map(card=>{
+        const name = (card.querySelector('.producto-nombre')?.textContent || '').trim();
+        const desc = (card.querySelector('.producto-descripcion')?.textContent || '').trim();
+        return {card, name, desc};
+      })
+      .filter(o=> o.name.toLowerCase().includes(LQ) || o.desc.toLowerCase().includes(LQ))
+      .slice(0, 6);
+
+    if (!results.length){ list.style.display='none'; return; }
+
+    results.forEach(({card, name})=>{
+      const item = document.createElement('div');
+      item.textContent = name;
+      item.style.padding = '10px 12px';
+      item.style.borderRadius = '8px';
+      item.style.cursor = 'pointer';
+      item.addEventListener('mouseenter', ()=> item.style.background = '#f6f2ec');
+      item.addEventListener('mouseleave', ()=> item.style.background = 'transparent');
+      item.addEventListener('click', ()=>{
+        list.style.display = 'none';
+        input.blur();
+        // Asegura que la tarjeta esté visible (por si hay filtro activo)
+        $all('.filtro-card').forEach(b=> b.classList.remove('activo'));
+        const allBtn = document.querySelector('.filtro-card[data-categoria="todos"]');
+        if (allBtn) { allBtn.classList.add('activo'); }
+        // Muestra todas
+        $all('.producto-card').forEach(c=> c.style.display = '');
+
+        // Scroll suave y foco
+        card.scrollIntoView({behavior:'smooth', block:'center'});
+        card.style.outline = '3px solid var(--cafe-medio)';
+        setTimeout(()=> card.style.outline = 'none', 1200);
+      });
+      list.appendChild(item);
+    });
+    list.style.display = 'block';
+  }
+
+  input.addEventListener('input', ()=>{
+    if (t) clearTimeout(t);
+    t = setTimeout(()=> renderSuggestions(input.value.trim()), 250);
+  }, true);
+
+  document.addEventListener('click', (e)=>{
+    if (!list.contains(e.target) && e.target !== input) list.style.display='none';
+  });
+})();
+
+/* ---------- 3) Añadir al carrito por AJAX + actualizar dígito al instante ---------- */
+(function cartAjax(){
+  document.addEventListener('submit', async function(e){
+    const form = e.target;
+    if (!form.matches('form[action$="php/cart_add.php"]')) return;
+    e.preventDefault();
+
+    try {
+      const fd = new FormData(form);
+      const res = await fetch(form.action, { method: 'POST', body: fd, headers: { 'X-Requested-With': 'XMLHttpRequest' }});
+      const raw = await res.text();
+      let data; try { data = JSON.parse(raw); } catch { data = { ok:false, msg:raw }; }
+
+      if (data.ok){
+        toast('Producto añadido al carrito');
+        setCartCount(data.count);  // 🔥 sube el dígito de inmediato
+      } else {
+        toast(data.msg || 'No se pudo añadir', true);
+      }
+    } catch(err){
+      console.error(err);
+      toast('Error de red', true);
+    }
+  }, true);
+
+  function setCartCount(n){
+    let updated = false;
+    // 1) IDs o data-attr comunes
+    ['#cart-count', '.cart-count', '[data-cart-count]'].forEach(sel=>{
+      $all(sel).forEach(el=>{ el.textContent = n; updated = true; });
+    });
+    // 2) Enlace al carrito "Carrito (X)"
+    if (!updated) {
+      const link = document.querySelector('a[href*="cart"]') || document.querySelector('a[href*="carrito"]');
+      if (link) {
+        const has = /\(\d+\)/.test(link.textContent);
+        link.textContent = has ? link.textContent.replace(/\(\d+\)/, '('+n+')') : (link.textContent.trim() + ' ('+n+')');
+        updated = true;
+      }
+    }
+    // 3) Badge Bootstrap común
+    if (!updated) {
+      const badge = document.querySelector('.badge.rounded-pill') || document.querySelector('.badge');
+      if (badge) badge.textContent = n;
+    }
+  }
+
+  function toast(msg, error=false){
+    const t = document.createElement('div');
+    t.textContent = msg;
+    Object.assign(t.style, {
+      position:'fixed', right:'20px', bottom:'20px', padding:'12px 16px',
+      borderRadius:'10px', boxShadow:'0 8px 24px rgba(0,0,0,.15)',
+      background: error ? '#b00020' : '#2e7d32', color:'#fff', zIndex:'9999', fontWeight:'600'
+    });
+    document.body.appendChild(t);
+    setTimeout(()=>{ t.style.opacity='0'; t.style.transition='opacity .3s'; }, 1600);
+    setTimeout(()=> t.remove(), 2000);
+  }
+})();
+</script>
+
+
 </body>
 </html>
