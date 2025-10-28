@@ -1,6 +1,7 @@
 <?php 
 session_start();
 require_once("../config/db.php");
+require_once("../includes/helpers.php");
 global $pdo;
 
 // Solo administradores pueden acceder
