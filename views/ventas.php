@@ -1,14 +1,16 @@
 <?php 
 session_start();
 require_once("../config/db.php");
+require_once("../includes/helpers.php"); // ✅ AGREGADO: Importar helpers
 global $pdo;
-
 
 // Solo administradores pueden acceder
 if (!esAdmin()) {
     header("Location: login.php");
     exit;
 }
+
+// ... resto del código igual
 
 // Filtros
 $fecha_desde = $_GET['fecha_desde'] ?? date('Y-m-01');

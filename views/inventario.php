@@ -1,6 +1,7 @@
 <?php 
 session_start();
 require_once("../config/db.php");
+require_once("../includes/helpers.php"); // ✅ AGREGAR ESTA LÍNEA
 global $pdo;
 
 // Solo administradores pueden acceder
@@ -8,6 +9,9 @@ if (!esAdmin()) {
     header("Location: login.php");
     exit;
 }
+
+// ... resto del código del archivo inventario.php sin cambios
+?>
 
 // Manejar acciones (agregar, editar, eliminar)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
