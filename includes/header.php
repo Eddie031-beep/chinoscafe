@@ -20,21 +20,33 @@ $usuario_nombre = $_SESSION['usuario_nombre'] ?? '';
   <div class="nav-container">
     <!-- LOGO -->
     <a href="<?= $base ?>/views/index.php" class="logo" aria-label="Chinos Café">
-    <img src="/chinoscafe/img/Logo.jpg" alt="Chinos Café">
+      <img src="<?= $base ?>/assets/img/Logo.jpg" alt="Chinos Café">
     </a>
 
-    <!-- MENÚ PRINCIPAL (desktop/mobile) -->
+    <!-- MENÚ PRINCIPAL -->
     <nav class="menu" id="mainMenu">
       <a <?= active('/views/index.php') ?> href="<?= $base ?>/views/index.php">Inicio</a>
       <a <?= active('/views/tienda.php') ?> href="<?= $base ?>/views/tienda.php">Tienda</a>
       <a <?= active('/views/sucursales.php') ?> href="<?= $base ?>/views/sucursales.php">Sucursales</a>
       <a <?= active('/views/historia.php') ?> href="<?= $base ?>/views/historia.php">Nuestra Historia</a>
 
+      <!-- ✅ MENÚ ADMIN COLAPSABLE -->
       <?php if ($usuario_logueado && $usuario_rol === 'admin'): ?>
-        <a <?= active('/views/inventario.php') ?> href="<?= $base ?>/views/inventario.php">Inventario</a>
-        <a <?= active('/views/proveedores.php') ?> href="<?= $base ?>/views/proveedores.php">Proveedores</a>
-        <a <?= active('/views/ventas.php') ?> href="<?= $base ?>/views/ventas.php">Ventas</a>
-        <a <?= active('/views/admin_dashboard.php') ?> href="<?= $base ?>/views/admin_dashboard.php">Admin</a>
+        <div class="admin-dropdown">
+          <button class="admin-toggle" id="adminToggle">
+            <span>👑 Admin</span>
+            <svg class="dropdown-icon" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M6 9l6 6 6-6"/>
+            </svg>
+          </button>
+          <div class="admin-menu" id="adminMenu">
+            <a href="<?= $base ?>/views/admin_dashboard.php">📊 Dashboard</a>
+            <a href="<?= $base ?>/views/inventario.php">📦 Inventario</a>
+            <a href="<?= $base ?>/views/proveedores.php">🏢 Proveedores</a>
+            <a href="<?= $base ?>/views/ventas.php">💰 Ventas</a>
+            <a href="<?= $base ?>/views/gestion_usuarios.php">👥 Usuarios</a>
+          </div>
+        </div>
       <?php endif; ?>
     </nav>
 
@@ -55,7 +67,7 @@ $usuario_nombre = $_SESSION['usuario_nombre'] ?? '';
       </div>
 
       <!-- 🛒 CARRITO -->
-      <a href="<?= $base ?>/views/cart.php" class="cart-link" aria-label="Carrito">
+      <a href="<?= $base ?>/views/cart.php" class="cart-link" aria-label="Carrito de compras">
         <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="9" cy="21" r="1"></circle>
           <circle cx="20" cy="21" r="1"></circle>
@@ -98,7 +110,7 @@ $usuario_nombre = $_SESSION['usuario_nombre'] ?? '';
 
 <style>
 /* ========================================= */
-/* NAVBAR MODERNA CON HAMBURGUESA */
+/* NAVBAR BASE */
 /* ========================================= */
 .navbar {
   position: fixed;
@@ -109,19 +121,27 @@ $usuario_nombre = $_SESSION['usuario_nombre'] ?? '';
   backdrop-filter: blur(10px);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
   z-index: 1000;
-  transition: all 0.3s ease;
 }
 
 .nav-container {
   height: 80px;
-  padding: 0 6%;
+  padding: 0 4%;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 20px;
+  gap: 30px;
+  max-width: 1600px;
+  margin: 0 auto;
 }
 
 /* LOGO */
+.logo {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
 .logo img {
   height: 55px;
   width: auto;
@@ -136,14 +156,14 @@ $usuario_nombre = $_SESSION['usuario_nombre'] ?? '';
 /* MENÚ PRINCIPAL */
 .menu {
   display: flex;
-  gap: 20px;
+  gap: 25px;
   align-items: center;
   flex: 1;
-  justify-content: center;
-  margin: 0 20px;
+  justify-content: flex-end;
+  margin: 0 40px 0 60px;
 }
 
-.menu a {
+.menu > a {
   color: #f8efe2;
   text-decoration: none;
   font-weight: 500;
@@ -152,9 +172,10 @@ $usuario_nombre = $_SESSION['usuario_nombre'] ?? '';
   border-radius: 20px;
   transition: all 0.3s ease;
   position: relative;
+  white-space: nowrap;
 }
 
-.menu a::after {
+.menu > a::after {
   content: '';
   position: absolute;
   bottom: 5px;
@@ -166,14 +187,95 @@ $usuario_nombre = $_SESSION['usuario_nombre'] ?? '';
   transition: width 0.3s ease;
 }
 
-.menu a:hover::after,
-.menu a.active::after {
+.menu > a:hover::after,
+.menu > a.active::after {
   width: 60%;
 }
 
-.menu a:hover,
-.menu a.active {
+.menu > a:hover,
+.menu > a.active {
   color: var(--cafe-claro);
+}
+
+/* ✅ MENÚ ADMIN DROPDOWN */
+.admin-dropdown {
+  position: relative;
+}
+
+.admin-toggle {
+  background: rgba(255, 215, 0, 0.15);
+  border: 2px solid rgba(255, 215, 0, 0.3);
+  color: #f8efe2;
+  padding: 8px 15px;
+  border-radius: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.admin-toggle:hover {
+  background: rgba(255, 215, 0, 0.25);
+  border-color: rgba(255, 215, 0, 0.5);
+  transform: translateY(-2px);
+}
+
+.admin-toggle.active {
+  background: rgba(255, 215, 0, 0.3);
+  border-color: #ffd700;
+}
+
+.dropdown-icon {
+  transition: transform 0.3s ease;
+}
+
+.admin-toggle.active .dropdown-icon {
+  transform: rotate(180deg);
+}
+
+.admin-menu {
+  position: absolute;
+  top: 120%;
+  right: 0;
+  background: rgba(43, 30, 23, 0.98);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  padding: 10px;
+  min-width: 220px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: all 0.3s ease;
+  z-index: 1001;
+  border: 2px solid rgba(255, 215, 0, 0.3);
+}
+
+.admin-menu.active {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.admin-menu a {
+  display: block;
+  padding: 12px 15px;
+  color: #f8efe2;
+  text-decoration: none;
+  border-radius: 8px;
+  transition: all 0.2s;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.admin-menu a:hover {
+  background: rgba(210, 166, 121, 0.2);
+  color: var(--cafe-claro);
+  transform: translateX(5px);
 }
 
 /* ACCIONES DERECHA */
@@ -181,6 +283,7 @@ $usuario_nombre = $_SESSION['usuario_nombre'] ?? '';
   display: flex;
   align-items: center;
   gap: 15px;
+  flex-shrink: 0;
 }
 
 /* 🔍 BUSCADOR */
@@ -300,22 +403,28 @@ $usuario_nombre = $_SESSION['usuario_nombre'] ?? '';
   transition: all 0.3s ease;
   display: flex;
   align-items: center;
+  background: rgba(210, 166, 121, 0.15);
+  border: 2px solid rgba(210, 166, 121, 0.3);
+  width: 44px;
+  height: 44px;
+  justify-content: center;
 }
 
 .cart-link:hover {
-  background: rgba(210, 166, 121, 0.2);
+  background: rgba(210, 166, 121, 0.3);
+  border-color: var(--cafe-claro);
   transform: scale(1.1);
 }
 
 .cart-badge {
   position: absolute;
-  top: 0;
-  right: 0;
+  top: -5px;
+  right: -5px;
   background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
   color: #fff;
   border-radius: 50%;
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -410,6 +519,7 @@ $usuario_nombre = $_SESSION['usuario_nombre'] ?? '';
   transition: all 0.3s ease;
   color: #fff;
   text-decoration: none;
+  white-space: nowrap;
 }
 
 .btn-login:hover {
@@ -452,6 +562,13 @@ $usuario_nombre = $_SESSION['usuario_nombre'] ?? '';
 /* ========================================= */
 /* RESPONSIVE */
 /* ========================================= */
+@media (max-width: 1200px) {
+  .menu {
+    gap: 20px;
+    margin: 0 20px 0 40px;
+  }
+}
+
 @media (max-width: 1024px) {
   .menu {
     position: fixed;
@@ -469,16 +586,35 @@ $usuario_nombre = $_SESSION['usuario_nombre'] ?? '';
     transition: left 0.3s ease;
     overflow-y: auto;
     box-shadow: 2px 0 20px rgba(0, 0, 0, 0.3);
+    margin: 0;
   }
   
   .menu.active {
     left: 0;
   }
   
-  .menu a {
+  .menu > a {
     width: 100%;
     text-align: left;
     padding: 12px 15px;
+  }
+  
+  .admin-dropdown {
+    width: 100%;
+  }
+  
+  .admin-toggle {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .admin-menu {
+    position: static;
+    margin-top: 10px;
+    transform: none;
+    box-shadow: none;
+    border: none;
+    background: rgba(0, 0, 0, 0.2);
   }
   
   .mobile-toggle {
@@ -488,30 +624,16 @@ $usuario_nombre = $_SESSION['usuario_nombre'] ?? '';
   .user-name {
     display: none;
   }
-  
-  .search-panel {
-    min-width: 280px;
-    right: auto;
-    left: 50%;
-    transform: translateX(-50%) translateY(-10px);
-  }
-  
-  .search-panel.active {
-    transform: translateX(-50%) translateY(0);
-  }
 }
 
 @media (max-width: 480px) {
   .nav-container {
     padding: 0 4%;
+    gap: 10px;
   }
   
   .logo img {
     height: 45px;
-  }
-  
-  .search-panel {
-    min-width: calc(100vw - 40px);
   }
   
   .nav-actions {
@@ -534,14 +656,12 @@ searchToggle?.addEventListener('click', () => {
   }
 });
 
-// Cerrar buscador al hacer clic fuera
 document.addEventListener('click', (e) => {
   if (!searchPanel?.contains(e.target) && !searchToggle?.contains(e.target)) {
     searchPanel?.classList.remove('active');
   }
 });
 
-// Búsqueda en tiempo real
 let searchTimeout;
 searchInput?.addEventListener('input', (e) => {
   clearTimeout(searchTimeout);
@@ -576,6 +696,23 @@ searchInput?.addEventListener('input', (e) => {
   }, 300);
 });
 
+// ✅ MENÚ ADMIN DROPDOWN
+const adminToggle = document.getElementById('adminToggle');
+const adminMenu = document.getElementById('adminMenu');
+
+adminToggle?.addEventListener('click', (e) => {
+  e.stopPropagation();
+  adminMenu.classList.toggle('active');
+  adminToggle.classList.toggle('active');
+});
+
+document.addEventListener('click', (e) => {
+  if (!adminMenu?.contains(e.target) && !adminToggle?.contains(e.target)) {
+    adminMenu?.classList.remove('active');
+    adminToggle?.classList.remove('active');
+  }
+});
+
 // 👤 MENÚ DE USUARIO
 const userToggle = document.getElementById('userToggle');
 const userDropdown = document.getElementById('userDropdown');
@@ -598,12 +735,10 @@ mobileToggle?.addEventListener('click', () => {
   mainMenu.classList.toggle('active');
   mobileToggle.classList.toggle('active');
   
-  // Cerrar otros menús
   searchPanel?.classList.remove('active');
   userDropdown?.classList.remove('active');
 });
 
-// Cerrar menú al hacer clic en un enlace (mobile)
 mainMenu?.querySelectorAll('a').forEach(link => {
   link.addEventListener('click', () => {
     if (window.innerWidth <= 1024) {

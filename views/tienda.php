@@ -3,6 +3,9 @@ session_start();
 require_once("../config/db.php");
 global $pdo;
 
+// ✅ Verificar si el usuario está logueado
+$usuario_logueado = isset($_SESSION['usuario_id']);
+
 // Base URL
 $__web_current = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
 $__web_root    = rtrim(dirname($__web_current), '/');
@@ -86,7 +89,7 @@ function img_src_producto($fname, $IMG_BASE, $ASSETS_IMG) {
             margin-bottom: 40px;
         }
 
-        /* FILTROS MEJORADOS - DEBAJO DEL TÍTULO */
+        /* FILTROS */
         .filtros-container {
             display: flex;
             justify-content: center;
@@ -129,18 +132,17 @@ function img_src_producto($fname, $IMG_BASE, $ASSETS_IMG) {
             font-size: 1.3rem;
         }
 
-        /* GRID DE PRODUCTOS CON SCROLL VERTICAL */
+        /* GRID DE PRODUCTOS CON SCROLL */
         .productos-wrapper {
             background: #fff;
             border-radius: 20px;
             padding: 30px;
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
-            max-height: 800px; /* ✅ Altura máxima para el contenedor */
-            overflow-y: auto; /* ✅ Scroll vertical */
+            max-height: 800px;
+            overflow-y: auto;
             overflow-x: hidden;
         }
         
-        /* ✅ Scrollbar personalizado */
         .productos-wrapper::-webkit-scrollbar {
             width: 10px;
         }
@@ -277,6 +279,96 @@ function img_src_producto($fname, $IMG_BASE, $ASSETS_IMG) {
             box-shadow: 0 8px 20px rgba(210, 166, 121, 0.5);
         }
         
+        /* ✅ OVERLAY DE LOGIN REQUERIDO */
+        .login-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            z-index: 9998;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .login-modal {
+            background: #fff;
+            padding: 50px;
+            border-radius: 20px;
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.4s ease-out;
+        }
+        
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .login-modal-icon {
+            font-size: 5rem;
+            margin-bottom: 20px;
+        }
+        
+        .login-modal h3 {
+            color: var(--cafe-oscuro);
+            margin: 0 0 15px 0;
+            font-size: 2rem;
+        }
+        
+        .login-modal p {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+        
+        .login-modal-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+        
+        .btn-modal {
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-modal-primary {
+            background: linear-gradient(135deg, var(--cafe-medio), var(--cafe-claro));
+            color: #fff;
+            border: none;
+        }
+        
+        .btn-modal-secondary {
+            background: transparent;
+            color: var(--cafe-medio);
+            border: 2px solid var(--cafe-medio);
+        }
+        
+        .btn-modal:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+        }
+        
         .no-results {
             text-align: center;
             padding: 80px 20px;
@@ -294,8 +386,16 @@ function img_src_producto($fname, $IMG_BASE, $ASSETS_IMG) {
             }
             
             .productos-wrapper {
-                max-height: 600px; /* Menos altura en móvil */
+                max-height: 600px;
                 padding: 20px;
+            }
+            
+            .login-modal {
+                padding: 30px;
+            }
+            
+            .login-modal-actions {
+                flex-direction: column;
             }
         }
     </style>
@@ -311,15 +411,38 @@ function img_src_producto($fname, $IMG_BASE, $ASSETS_IMG) {
         </div>
     </section>
 
+    <!-- ✅ OVERLAY DE LOGIN REQUERIDO (solo si no está logueado) -->
+    <?php if (!$usuario_logueado): ?>
+    <div class="login-overlay" id="loginOverlay">
+        <div class="login-modal">
+            <div class="login-modal-icon">🔒</div>
+            <h3>Inicia Sesión para Comprar</h3>
+            <p>Para agregar productos al carrito y realizar compras, necesitas tener una cuenta activa.</p>
+            <div class="login-modal-actions">
+                <a href="../views/login.php" class="btn-modal btn-modal-primary">
+                    🔑 Iniciar Sesión
+                </a>
+                <a href="../views/register.php" class="btn-modal btn-modal-secondary">
+                    📝 Registrarse
+                </a>
+            </div>
+            <p style="margin-top: 20px; font-size: 0.9rem; color: #999;">
+                <a href="javascript:void(0)" onclick="closeOverlay()" style="color: var(--cafe-medio); text-decoration: underline;">
+                    Continuar explorando sin comprar
+                </a>
+            </p>
+        </div>
+    </div>
+    <?php endif; ?>
+
     <!-- CONTENEDOR PRINCIPAL -->
     <main class="tienda-container">
-        <!-- HEADER CON TÍTULO -->
         <div class="section-header">
             <h2 class="section-title">☕ Explorar Productos</h2>
             <p class="section-subtitle">Descubre nuestras deliciosas opciones</p>
         </div>
 
-        <!-- FILTROS DEBAJO DEL TÍTULO -->
+        <!-- FILTROS -->
         <div class="filtros-container">
             <button class="filtro-btn activo" data-categoria="todos">
                 <span class="filtro-icon">🎯</span>
@@ -371,7 +494,8 @@ function img_src_producto($fname, $IMG_BASE, $ASSETS_IMG) {
                             <p class="producto-descripcion"><?= htmlspecialchars($p['descripcion']) ?></p>
                             <div class="producto-footer">
                                 <span class="producto-precio">$<?= number_format($p['precio'], 2) ?></span>
-                                <button class="btn-add-cart" data-id="<?= $p['id'] ?>">
+                                <button class="btn-add-cart" data-id="<?= $p['id'] ?>" 
+                                        <?= !$usuario_logueado ? 'data-require-login="true"' : '' ?>>
                                     🛒 Añadir
                                 </button>
                             </div>
@@ -397,10 +521,12 @@ function img_src_producto($fname, $IMG_BASE, $ASSETS_IMG) {
     <?php include("../includes/footer.php"); ?>
 
     <script>
+        // ✅ Variable global para saber si el usuario está logueado
+        const usuarioLogueado = <?= $usuario_logueado ? 'true' : 'false' ?>;
+
         /* ===== FILTROS DE CATEGORÍA ===== */
         document.querySelectorAll('.filtro-btn').forEach(btn => {
             btn.addEventListener('click', () => {
-                // Actualizar botón activo
                 document.querySelectorAll('.filtro-btn').forEach(b => b.classList.remove('activo'));
                 btn.classList.add('activo');
                 
@@ -416,15 +542,20 @@ function img_src_producto($fname, $IMG_BASE, $ASSETS_IMG) {
                     }
                 });
                 
-                // Scroll al inicio de productos
                 document.querySelector('.productos-wrapper').scrollTo({ top: 0, behavior: 'smooth' });
             });
         });
 
-        /* ===== AÑADIR AL CARRITO CON AJAX ===== */
+        /* ===== AÑADIR AL CARRITO ===== */
         document.addEventListener('click', async (e) => {
             const btn = e.target.closest('.btn-add-cart');
             if (!btn) return;
+            
+            // ✅ Verificar si requiere login
+            if (btn.hasAttribute('data-require-login')) {
+                showLoginOverlay();
+                return;
+            }
             
             const id = btn.getAttribute('data-id');
             if (!id) return;
@@ -450,11 +581,26 @@ function img_src_producto($fname, $IMG_BASE, $ASSETS_IMG) {
             }
         });
 
-        /* ===== ACTUALIZAR BADGE DEL CARRITO ===== */
+        /* ===== FUNCIONES AUXILIARES ===== */
+        function showLoginOverlay() {
+            const overlay = document.getElementById('loginOverlay');
+            if (overlay) {
+                overlay.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+            }
+        }
+
+        function closeOverlay() {
+            const overlay = document.getElementById('loginOverlay');
+            if (overlay) {
+                overlay.style.display = 'none';
+                document.body.style.overflow = '';
+            }
+        }
+
         function updateCartBadge(count) {
-            // Buscar badge en el header
             let badge = document.querySelector('.cart-badge');
-            const cartLink = document.querySelector('a[href*="cart.php"]');
+            const cartLink = document.querySelector('.cart-link');
             
             if (count > 0) {
                 if (!badge && cartLink) {
@@ -468,7 +614,6 @@ function img_src_producto($fname, $IMG_BASE, $ASSETS_IMG) {
             }
         }
 
-        /* ===== NOTIFICACIONES TOAST ===== */
         function showToast(message, isError = false) {
             const toast = document.createElement('div');
             toast.textContent = message;
@@ -494,7 +639,6 @@ function img_src_producto($fname, $IMG_BASE, $ASSETS_IMG) {
             }, 3000);
         }
 
-        // Animaciones CSS
         const style = document.createElement('style');
         style.textContent = `
             @keyframes slideIn {

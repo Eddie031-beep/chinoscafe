@@ -1,301 +1,301 @@
-<?php 
+<?php
 session_start();
 require_once("../config/db.php");
-global $pdo;
+require_once("../includes/helpers.php");
 
-// Base URL
-$__web_current = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
-$__web_root    = rtrim(dirname($__web_current), '/');
-$IMG_BASE      = $__web_root . '/img/';
-$ASSETS_IMG    = $__web_root . '/assets/img/';
+$cart = $_SESSION['cart'] ?? [];
 
-function img_src_producto($fname, $IMG_BASE, $ASSETS_IMG) {
-    $fname = htmlspecialchars($fname ?: 'default.jpg', ENT_QUOTES, 'UTF-8');
-    $primary = $IMG_BASE . $fname;
-    $fallback = $ASSETS_IMG . $fname;
-    $placeholder = $ASSETS_IMG . 'placeholder.jpg';
-    return $primary . "\" onerror=\"this.onerror=null;this.src='" . $fallback .
-           "';this.onerror=function(){this.src='" . $placeholder . "';}";
-}
+// Calcular totales usando la función helper
+$totales = calcularTotalesCarrito($cart);
+$subtotal = $totales['subtotal'];
+$impuesto = $totales['impuesto'];
+$total = $totales['total'];
+$total_items = $totales['total_items'];
 ?>
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tienda | Chinos Café</title>
+    <title>Carrito | Chinos Café</title>
     <link rel="stylesheet" href="../assets/css/style.css">
     <style>
-        /* HERO */
-        .hero-tienda {
-            height: 60vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            color: #fff;
-            background: url('../img/hero-cafe2.jpg') center/cover no-repeat fixed;
-            position: relative;
-            margin-top: -90px;
-        }
-        
-        .hero-tienda::after {
-            content: "";
-            position: absolute;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.5);
-        }
-        
-        .contenido-hero {
-            position: relative;
-            z-index: 1;
-            padding: 20px;
-        }
-        
-        .contenido-hero h1 {
-            font-size: clamp(2.5rem, 6vw, 4rem);
-            margin: 0 0 15px 0;
-        }
-        
-        .contenido-hero p {
-            font-size: clamp(1rem, 2vw, 1.3rem);
-            opacity: 0.95;
-        }
-
-        /* SECCIÓN PRINCIPAL */
-        .tienda-container {
-            padding: 60px 7%;
+        .cart {
+            padding: 50px 7%;
+            min-height: 70vh;
             background: var(--crema);
         }
         
-        .section-header {
-            text-align: center;
-            margin-bottom: 50px;
-        }
-        
-        .section-title {
-            font-size: clamp(2rem, 5vw, 3rem);
-            color: var(--cafe-oscuro);
-            margin: 0 0 15px 0;
-        }
-        
-        .section-subtitle {
-            font-size: 1.1rem;
-            color: #666;
-            margin-bottom: 40px;
-        }
-
-        /* FILTROS MEJORADOS - DEBAJO DEL TÍTULO */
-        .filtros-container {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            flex-wrap: wrap;
-            margin-bottom: 50px;
-            padding: 0 20px;
-        }
-        
-        .filtro-btn {
-            background: #fff;
-            border: 2px solid #e0e0e0;
-            border-radius: 25px;
-            padding: 12px 30px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-weight: 600;
-            color: var(--cafe-oscuro);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-        }
-        
-        .filtro-btn:hover {
-            border-color: var(--cafe-medio);
-            transform: translateY(-3px);
-            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
-        }
-        
-        .filtro-btn.activo {
-            background: linear-gradient(135deg, var(--cafe-medio), var(--cafe-claro));
-            border-color: var(--cafe-medio);
-            color: #fff;
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(210, 166, 121, 0.4);
-        }
-        
-        .filtro-icon {
-            font-size: 1.3rem;
-        }
-
-        /* GRID DE PRODUCTOS CON SCROLL VERTICAL */
-        .productos-wrapper {
-            background: #fff;
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
-            max-height: 800px; /* ✅ Altura máxima para el contenedor */
-            overflow-y: auto; /* ✅ Scroll vertical */
-            overflow-x: hidden;
-        }
-        
-        /* ✅ Scrollbar personalizado */
-        .productos-wrapper::-webkit-scrollbar {
-            width: 10px;
-        }
-        
-        .productos-wrapper::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 10px;
-        }
-        
-        .productos-wrapper::-webkit-scrollbar-thumb {
-            background: var(--cafe-medio);
-            border-radius: 10px;
-        }
-        
-        .productos-wrapper::-webkit-scrollbar-thumb:hover {
-            background: var(--cafe-oscuro);
-        }
-        
-        .productos-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 30px;
-        }
-        
-        .producto-card {
-            background: #fff;
-            border-radius: 20px;
-            overflow: hidden;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
-            transition: all 0.4s ease;
-            cursor: pointer;
-            border: 2px solid transparent;
-        }
-        
-        .producto-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
-            border-color: var(--cafe-claro);
-        }
-        
-        .producto-image-wrapper {
-            position: relative;
-            height: 250px;
-            overflow: hidden;
-            background: var(--crema);
-        }
-        
-        .producto-image {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transition: transform 0.4s ease;
-        }
-        
-        .producto-card:hover .producto-image {
-            transform: scale(1.1);
-        }
-        
-        .producto-badge {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            background: var(--cafe-medio);
-            color: #fff;
-            padding: 6px 15px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            box-shadow: 0 5px 15px rgba(139, 94, 60, 0.4);
-        }
-        
-        .producto-info {
-            padding: 25px;
-        }
-        
-        .producto-categoria {
-            color: var(--cafe-medio);
-            font-size: 0.85rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 10px;
-        }
-        
-        .producto-nombre {
-            font-size: 1.3rem;
-            color: var(--cafe-oscuro);
-            margin: 0 0 10px 0;
-            font-weight: 600;
-            min-height: 50px;
-        }
-        
-        .producto-descripcion {
-            color: #666;
-            font-size: 0.95rem;
-            line-height: 1.6;
-            margin-bottom: 20px;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-            min-height: 45px;
-        }
-        
-        .producto-footer {
+        .cart-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding-top: 15px;
-            border-top: 1px solid #eee;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+            gap: 15px;
         }
         
-        .producto-precio {
-            font-size: 1.8rem;
-            color: var(--cafe-medio);
-            font-weight: 700;
+        .cart-header h2 {
+            color: var(--cafe-oscuro);
+            margin: 0;
+            font-size: 2.5rem;
         }
         
-        .btn-add-cart {
+        .cart-count-badge {
             background: linear-gradient(135deg, var(--cafe-medio), var(--cafe-claro));
             color: #fff;
+            padding: 10px 25px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            box-shadow: 0 5px 15px rgba(210, 166, 121, 0.3);
+        }
+        
+        .cart-empty {
+            text-align: center;
+            padding: 100px 20px;
+            background: #fff;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+        }
+        
+        .cart-empty-icon {
+            font-size: 6rem;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+        
+        .cart-empty h3 {
+            color: var(--cafe-oscuro);
+            margin-bottom: 15px;
+            font-size: 2rem;
+        }
+        
+        .cart-empty p {
+            color: #666;
+            font-size: 1.1rem;
+            margin-bottom: 30px;
+        }
+        
+        .table-container {
+            background: #fff;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0,0,0,.08);
+            margin-bottom: 30px;
+        }
+        
+        .tbl {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .tbl th {
+            background: var(--cafe-oscuro);
+            color: #fff;
+            padding: 18px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+        
+        .tbl td {
+            padding: 20px 18px;
+            border-bottom: 1px solid #f0f0f0;
+            vertical-align: middle;
+        }
+        
+        .tbl tr:hover {
+            background: #f8f6f1;
+        }
+        
+        .tbl tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .product-cell {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .product-img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        
+        .product-info h4 {
+            margin: 0 0 5px 0;
+            color: var(--cafe-oscuro);
+            font-size: 1.1rem;
+        }
+        
+        .product-info p {
+            margin: 0;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .qty-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #f8f6f1;
+            padding: 8px;
+            border-radius: 30px;
+            width: fit-content;
+        }
+        
+        .qty-btn {
+            width: 35px;
+            height: 35px;
             border: none;
-            padding: 12px 24px;
+            border-radius: 50%;
+            background: var(--cafe-claro);
+            color: #fff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+        }
+        
+        .qty-btn:hover {
+            background: var(--cafe-medio);
+            transform: scale(1.1);
+        }
+        
+        .qty-input {
+            width: 60px;
+            padding: 8px;
+            text-align: center;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+        
+        .qty-input:focus {
+            outline: none;
+            border-color: var(--cafe-medio);
+        }
+        
+        .remove-btn {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
             border-radius: 25px;
             cursor: pointer;
             font-weight: 600;
             transition: all 0.3s ease;
-            box-shadow: 0 5px 15px rgba(210, 166, 121, 0.3);
+            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
         }
         
-        .btn-add-cart:hover {
+        .remove-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(210, 166, 121, 0.5);
+            box-shadow: 0 6px 16px rgba(220, 53, 69, 0.4);
         }
         
-        .no-results {
-            text-align: center;
-            padding: 80px 20px;
-            color: #999;
+        .cart-summary {
+            background: #fff;
+            padding: 35px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,.08);
         }
-
+        
+        .summary-title {
+            color: var(--cafe-oscuro);
+            margin: 0 0 25px 0;
+            font-size: 1.8rem;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--cafe-claro);
+        }
+        
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 1.1rem;
+        }
+        
+        .summary-row:last-of-type {
+            border-bottom: none;
+        }
+        
+        .summary-row.total {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--cafe-oscuro);
+            border-top: 2px solid var(--cafe-claro);
+            padding-top: 20px;
+            margin-top: 20px;
+        }
+        
+        .cart-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+            margin-top: 30px;
+        }
+        
+        .btn {
+            padding: 16px 32px;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: #fff;
+            box-shadow: 0 5px 15px rgba(108, 117, 125, 0.3);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--cafe-medio), var(--cafe-claro));
+            color: #fff;
+            box-shadow: 0 5px 15px rgba(210, 166, 121, 0.4);
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+        }
+        
         @media (max-width: 768px) {
-            .filtros-container {
-                gap: 10px;
+            .cart-header h2 {
+                font-size: 2rem;
             }
             
-            .filtro-btn {
-                padding: 10px 20px;
-                font-size: 0.9rem;
+            .tbl {
+                font-size: 0.85rem;
             }
             
-            .productos-wrapper {
-                max-height: 600px; /* Menos altura en móvil */
-                padding: 20px;
+            .product-cell {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .cart-actions {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
             }
         }
     </style>
@@ -303,210 +303,165 @@ function img_src_producto($fname, $IMG_BASE, $ASSETS_IMG) {
 <body>
     <?php include("../includes/header.php"); ?>
 
-    <!-- HERO -->
-    <section class="hero-tienda">
-        <div class="contenido-hero">
-            <h1>Explora Nuestro Menú</h1>
-            <p>Encuentra tu bebida perfecta entre nuestra selecta variedad</p>
-        </div>
-    </section>
-
-    <!-- CONTENEDOR PRINCIPAL -->
-    <main class="tienda-container">
-        <!-- HEADER CON TÍTULO -->
-        <div class="section-header">
-            <h2 class="section-title">☕ Explorar Productos</h2>
-            <p class="section-subtitle">Descubre nuestras deliciosas opciones</p>
+    <main class="cart">
+        <div class="cart-header">
+            <h2>🛒 Tu Carrito</h2>
+            <span class="cart-count-badge">
+                <?= $total_items ?> producto<?= $total_items != 1 ? 's' : '' ?>
+            </span>
         </div>
 
-        <!-- FILTROS DEBAJO DEL TÍTULO -->
-        <div class="filtros-container">
-            <button class="filtro-btn activo" data-categoria="todos">
-                <span class="filtro-icon">🎯</span>
-                <span>Todos</span>
-            </button>
-            
-            <button class="filtro-btn" data-categoria="Bebida Caliente">
-                <span class="filtro-icon">☕</span>
-                <span>Bebidas Calientes</span>
-            </button>
-            
-            <button class="filtro-btn" data-categoria="Bebida Fría">
-                <span class="filtro-icon">🧊</span>
-                <span>Bebidas Frías</span>
-            </button>
-            
-            <button class="filtro-btn" data-categoria="Postre">
-                <span class="filtro-icon">🍰</span>
-                <span>Postres</span>
-            </button>
-            
-            <button class="filtro-btn" data-categoria="Panadería">
-                <span class="filtro-icon">🥐</span>
-                <span>Panadería</span>
-            </button>
-        </div>
-
-        <!-- PRODUCTOS CON SCROLL -->
-        <div class="productos-wrapper">
-            <div class="productos-grid">
-                <?php
-                try {
-                    $stmt = $pdo->query("SELECT * FROM productos WHERE activo = 1 ORDER BY nombre ASC");
-                    $productos = $stmt->fetchAll(PDO::FETCH_ASSOC);
-                    
-                    if (count($productos) > 0):
-                        foreach ($productos as $p):
-                ?>
-                    <div class="producto-card" data-categoria="<?= htmlspecialchars($p['categoria']) ?>" data-id="<?= $p['id'] ?>">
-                        <div class="producto-image-wrapper">
-                            <img src="<?= img_src_producto($p['imagen'], $IMG_BASE, $ASSETS_IMG) ?>" 
-                                 alt="<?= htmlspecialchars($p['nombre']) ?>" 
-                                 class="producto-image">
-                            <span class="producto-badge"><?= htmlspecialchars($p['categoria']) ?></span>
-                        </div>
-                        <div class="producto-info">
-                            <p class="producto-categoria"><?= htmlspecialchars($p['categoria']) ?></p>
-                            <h3 class="producto-nombre"><?= htmlspecialchars($p['nombre']) ?></h3>
-                            <p class="producto-descripcion"><?= htmlspecialchars($p['descripcion']) ?></p>
-                            <div class="producto-footer">
-                                <span class="producto-precio">$<?= number_format($p['precio'], 2) ?></span>
-                                <button class="btn-add-cart" data-id="<?= $p['id'] ?>">
-                                    🛒 Añadir
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                <?php 
-                        endforeach;
-                    else:
-                ?>
-                    <div class="no-results">
-                        <p>No hay productos disponibles.</p>
-                    </div>
-                <?php 
-                    endif;
-                } catch (PDOException $e) {
-                    echo "<p class='no-results'>Error al cargar productos.</p>";
-                }
-                ?>
+        <?php if(empty($cart)): ?>
+            <div class="cart-empty">
+                <div class="cart-empty-icon">🛒</div>
+                <h3>Tu carrito está vacío</h3>
+                <p>¡Descubre nuestros deliciosos productos y añade algunos a tu carrito!</p>
+                <a href="tienda.php" class="btn btn-primary" style="margin-top: 20px;">
+                    🛍️ Ir a la Tienda
+                </a>
             </div>
-        </div>
+        <?php else: ?>
+            <div class="table-container">
+                <table class="tbl">
+                    <thead>
+                        <tr>
+                            <th>Producto</th>
+                            <th>Precio</th>
+                            <th>Cantidad</th>
+                            <th>Subtotal</th>
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach($cart as $id => $item): 
+                            $item_total = $item['precio'] * $item['cantidad'];
+                        ?>
+                            <tr data-id="<?= $id ?>">
+                                <td>
+                                    <div class="product-cell">
+                                        <img src="../assets/img/<?= htmlspecialchars($item['imagen']) ?>" 
+                                             alt="<?= htmlspecialchars($item['nombre']) ?>" 
+                                             class="product-img">
+                                        <div class="product-info">
+                                            <h4><?= htmlspecialchars($item['nombre']) ?></h4>
+                                            <p>Producto de calidad premium</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <strong style="color: var(--cafe-medio); font-size: 1.2rem;">
+                                        $<?= number_format($item['precio'], 2) ?>
+                                    </strong>
+                                </td>
+                                <td>
+                                    <div class="qty-controls">
+                                        <button class="qty-btn minus" onclick="updateQuantity(<?= $id ?>, -1)">−</button>
+                                        <input type="number" class="qty-input" value="<?= $item['cantidad'] ?>" 
+                                               min="1" onchange="updateQuantity(<?= $id ?>, 0, this.value)">
+                                        <button class="qty-btn plus" onclick="updateQuantity(<?= $id ?>, 1)">+</button>
+                                    </div>
+                                </td>
+                                <td class="item-total">
+                                    <strong style="color: var(--cafe-oscuro); font-size: 1.3rem;">
+                                        $<?= number_format($item_total, 2) ?>
+                                    </strong>
+                                </td>
+                                <td>
+                                    <button class="remove-btn" onclick="removeItem(<?= $id ?>)">
+                                        🗑️ Eliminar
+                                    </button>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="cart-summary">
+                <h3 class="summary-title">📋 Resumen del Pedido</h3>
+                
+                <div class="summary-row">
+                    <span>Subtotal:</span>
+                    <span id="subtotal"><strong>$<?= number_format($subtotal, 2) ?></strong></span>
+                </div>
+                <div class="summary-row">
+                    <span>ITBMS (7%):</span>
+                    <span id="tax"><strong>$<?= number_format($impuesto, 2) ?></strong></span>
+                </div>
+                <div class="summary-row total">
+                    <span>Total a Pagar:</span>
+                    <span id="total">$<?= number_format($total, 2) ?></span>
+                </div>
+                
+                <div class="cart-actions">
+                    <a href="tienda.php" class="btn btn-secondary">
+                        ← Seguir Comprando
+                    </a>
+                    <a href="checkout.php" class="btn btn-primary">
+                        🛒 Proceder al Pago
+                    </a>
+                </div>
+            </div>
+        <?php endif; ?>
     </main>
 
     <?php include("../includes/footer.php"); ?>
 
     <script>
-        /* ===== FILTROS DE CATEGORÍA ===== */
-        document.querySelectorAll('.filtro-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                // Actualizar botón activo
-                document.querySelectorAll('.filtro-btn').forEach(b => b.classList.remove('activo'));
-                btn.classList.add('activo');
-                
-                const categoria = btn.getAttribute('data-categoria');
-                const cards = document.querySelectorAll('.producto-card');
-                
-                cards.forEach(card => {
-                    const cardCat = card.getAttribute('data-categoria');
-                    if (categoria === 'todos' || cardCat === categoria) {
-                        card.style.display = '';
-                    } else {
-                        card.style.display = 'none';
-                    }
-                });
-                
-                // Scroll al inicio de productos
-                document.querySelector('.productos-wrapper').scrollTo({ top: 0, behavior: 'smooth' });
-            });
-        });
-
-        /* ===== AÑADIR AL CARRITO CON AJAX ===== */
-        document.addEventListener('click', async (e) => {
-            const btn = e.target.closest('.btn-add-cart');
-            if (!btn) return;
+        async function updateQuantity(productId, change, newValue = null) {
+            let quantity = newValue !== null ? parseInt(newValue) : 
+                          parseInt(document.querySelector(`tr[data-id="${productId}"] .qty-input`).value) + change;
             
-            const id = btn.getAttribute('data-id');
-            if (!id) return;
+            if (quantity < 1) quantity = 1;
             
             try {
-                const response = await fetch('../php/cart_add.php', {
+                const response = await fetch('../php/cart_update.php', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: `id=${id}`
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `id=${productId}&qty=${quantity}`
                 });
                 
                 const data = await response.json();
                 
                 if (data.ok) {
-                    showToast('✅ Producto agregado al carrito');
-                    updateCartBadge(data.count);
+                    // Recargar página para actualizar totales
+                    location.reload();
                 } else {
-                    showToast('❌ ' + (data.msg || 'Error al agregar'), true);
+                    alert('Error al actualizar la cantidad');
                 }
             } catch (error) {
                 console.error('Error:', error);
-                showToast('❌ Error de conexión', true);
+                alert('Error de conexión');
             }
-        });
-
-        /* ===== ACTUALIZAR BADGE DEL CARRITO ===== */
-        function updateCartBadge(count) {
-            // Buscar badge en el header
-            let badge = document.querySelector('.cart-badge');
-            const cartLink = document.querySelector('a[href*="cart.php"]');
-            
-            if (count > 0) {
-                if (!badge && cartLink) {
-                    badge = document.createElement('span');
-                    badge.className = 'cart-badge';
-                    cartLink.appendChild(badge);
+        }
+        
+        async function removeItem(productId) {
+            if (confirm('¿Estás seguro de eliminar este producto del carrito?')) {
+                try {
+                    const response = await fetch('../php/cart_update.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: `id=${productId}&qty=0`
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.ok) {
+                        // Recargar página
+                        location.reload();
+                    } else {
+                        alert('Error al eliminar el producto');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('Error de conexión');
                 }
-                if (badge) badge.textContent = count;
-            } else {
-                if (badge) badge.remove();
             }
         }
-
-        /* ===== NOTIFICACIONES TOAST ===== */
-        function showToast(message, isError = false) {
-            const toast = document.createElement('div');
-            toast.textContent = message;
-            toast.style.cssText = `
-                position: fixed;
-                top: 100px;
-                right: 20px;
-                background: ${isError ? 'linear-gradient(135deg, #dc3545, #c82333)' : 'linear-gradient(135deg, #28a745, #20c997)'};
-                color: white;
-                padding: 16px 24px;
-                border-radius: 12px;
-                z-index: 10000;
-                box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-                font-weight: 600;
-                animation: slideIn 0.3s ease-out;
-            `;
-            
-            document.body.appendChild(toast);
-            
-            setTimeout(() => {
-                toast.style.animation = 'slideOut 0.3s ease-out';
-                setTimeout(() => toast.remove(), 300);
-            }, 3000);
-        }
-
-        // Animaciones CSS
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes slideIn {
-                from { transform: translateX(400px); opacity: 0; }
-                to { transform: translateX(0); opacity: 1; }
-            }
-            @keyframes slideOut {
-                from { transform: translateX(0); opacity: 1; }
-                to { transform: translateX(400px); opacity: 0; }
-            }
-        `;
-        document.head.appendChild(style);
     </script>
 </body>
 </html>

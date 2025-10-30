@@ -166,7 +166,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <label class="form-label">Correo Electrónico</label>
                     <input type="email" name="correo" class="form-input" required 
                            value="<?= htmlspecialchars($_POST['correo'] ?? '') ?>"
-                           placeholder="admin@chinoscafe.com">
+                           placeholder="Ingresa tu correo">
                 </div>
 
                 <div class="form-group">
