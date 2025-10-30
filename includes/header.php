@@ -20,7 +20,7 @@ $usuario_nombre = $_SESSION['usuario_nombre'] ?? '';
   <div class="nav-container">
     <!-- LOGO -->
     <a href="<?= $base ?>/views/index.php" class="logo" aria-label="Chinos Café">
-      <img src="<?= $base ?>/assets/img/Logo.jpg" alt="Chinos Café">
+    <img src="/chinoscafe/img/Logo.jpg" alt="Chinos Café">
     </a>
 
     <!-- MENÚ PRINCIPAL (desktop/mobile) -->

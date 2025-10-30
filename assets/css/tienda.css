@@ -17,7 +17,7 @@
   place-items: center;
   text-align: center;
   color: #fff;
-  background: url('../img/hero-cafe2.jpg') center / cover no-repeat fixed;
+  background: url('../../img/hero-cafe2.jpg') center / cover no-repeat fixed;
   position: relative;
 }
 

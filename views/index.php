@@ -642,42 +642,41 @@ global $pdo;
         </div>
         
         <div class="productos-grid">
-            <?php
-            try {
-                $query = $pdo->query("SELECT * FROM productos WHERE activo = 1 ORDER BY RAND() LIMIT 6");
-                while ($row = $query->fetch(PDO::FETCH_ASSOC)) {
-                    $id = (int)$row['id'];
-                    $nombre = htmlspecialchars($row['nombre'], ENT_QUOTES, 'UTF-8');
-                    $desc = htmlspecialchars($row['descripcion'], ENT_QUOTES, 'UTF-8');
-                    $precio = htmlspecialchars($row['precio'], ENT_QUOTES, 'UTF-8');
-                    $categoria = htmlspecialchars($row['categoria'] ?? 'Bebida', ENT_QUOTES, 'UTF-8');
-                    
-                    $img = "../assets/img/" . $row['imagen'];
-                    if (!is_file($img)) {
-                        $img = "../assets/img/default.jpg";
-                    }
-                    
-                    echo "
-                    <div class='producto-card'>
-                        <div class='producto-image-wrapper'>
-                            <img src='$img' alt='$nombre' class='producto-image'>
-                            <span class='producto-badge'>Nuevo</span>
-                        </div>
-                        <div class='producto-info'>
-                            <div class='producto-categoria'>$categoria</div>
-                            <h3 class='producto-nombre'>$nombre</h3>
-                            <p class='producto-descripcion'>$desc</p>
-                            <div class='producto-footer'>
-                                <span class='producto-precio'>\$precio</span>
-                                <button class='btn-add-cart' onclick='addToCart($id)'>🛒 Agregar</button>
-                            </div>
-                        </div>
-                    </div>";
-                }
-            } catch (PDOException $e) {
-                echo "<p style='color:red; text-align:center;'>Error al cargar productos</p>";
-            }
-            ?>
+<?php
+try {
+    $query = $pdo->query("SELECT * FROM productos WHERE activo = 1 ORDER BY RAND() LIMIT 6");
+    while ($row = $query->fetch(PDO::FETCH_ASSOC)) {
+        $id = (int)$row['id'];
+        $nombre = htmlspecialchars($row['nombre'], ENT_QUOTES, 'UTF-8');
+        $desc = htmlspecialchars($row['descripcion'], ENT_QUOTES, 'UTF-8');
+        $precio = htmlspecialchars($row['precio'], ENT_QUOTES, 'UTF-8');
+        $categoria = htmlspecialchars($row['categoria'] ?? 'Bebida', ENT_QUOTES, 'UTF-8');
+        $imagen = htmlspecialchars($row['imagen']);
+        
+        // 🔧 RUTA CORREGIDA
+        $img_src = "/chinoscafe/img/" . $imagen;
+        
+        echo "
+        <div class='producto-card'>
+            <div class='producto-image-wrapper'>
+                <img src='$img_src' alt='$nombre' class='producto-image' onerror=\"this.src='/chinoscafe/img/default.jpg'\">
+                <span class='producto-badge'>Nuevo</span>
+            </div>
+            <div class='producto-info'>
+                <div class='producto-categoria'>$categoria</div>
+                <h3 class='producto-nombre'>$nombre</h3>
+                <p class='producto-descripcion'>$desc</p>
+                <div class='producto-footer'>
+                    <span class='producto-precio'>\$$precio</span>
+                    <button class='btn-add-cart' onclick='addToCart($id)'>🛒 Agregar</button>
+                </div>
+            </div>
+        </div>";
+    }
+} catch (PDOException $e) {
+    echo "<p style='color:red; text-align:center;'>Error al cargar productos</p>";
+}
+?>
         </div>
         
         <div style="text-align: center; margin-top: 50px;">
