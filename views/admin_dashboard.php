@@ -128,7 +128,7 @@ $productos_bajo_stock = $pdo->query("SELECT nombre, stock, stock_minimo FROM pro
 
     <main class="admin-dashboard">
         <div class="dashboard-header">
-            <h1>👑 Panel de Administración</h1>
+            <h1> Panel de Administración</h1>
             <p>Bienvenido, <?= htmlspecialchars($_SESSION['usuario_nombre']) ?> • <?= date('d/m/Y') ?></p>
         </div>
 

@@ -20,7 +20,7 @@ $usuario_nombre = $_SESSION['usuario_nombre'] ?? '';
   <div class="nav-container">
     <!-- LOGO -->
     <a href="<?= $base ?>/views/index.php" class="logo" aria-label="Chinos Café">
-      <img src="<?= $base ?>/assets/img/Logo.jpg" alt="Chinos Café">
+      <img src="<?= $base ?>/img/Logo.jpg" alt="Chinos Café">
     </a>
 
     <!-- MENÚ PRINCIPAL -->
@@ -35,8 +35,8 @@ $usuario_nombre = $_SESSION['usuario_nombre'] ?? '';
         <div class="admin-dropdown">
           <button class="admin-toggle" id="adminToggle">
             <span>👑 Admin</span>
-            <svg class="dropdown-icon" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M6 9l6 6 6-6"/>
+            <svg class="dropdown-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
             </svg>
           </button>
           <div class="admin-menu" id="adminMenu">
@@ -134,7 +134,7 @@ $usuario_nombre = $_SESSION['usuario_nombre'] ?? '';
   margin: 0 auto;
 }
 
-/* LOGO */
+/* LOGO - CORREGIDO */
 .logo {
   display: flex;
   align-items: center;
@@ -143,14 +143,17 @@ $usuario_nombre = $_SESSION['usuario_nombre'] ?? '';
 }
 
 .logo img {
-  height: 55px;
-  width: auto;
-  border-radius: 12px;
+  height: 50px;
+  width: 50px;
+  object-fit: cover;
+  border-radius: 50%;
   transition: transform 0.3s ease;
+  border: 2px solid rgba(210, 166, 121, 0.3);
 }
 
 .logo img:hover {
   transform: scale(1.05);
+  border-color: var(--cafe-claro);
 }
 
 /* MENÚ PRINCIPAL */
@@ -197,21 +200,21 @@ $usuario_nombre = $_SESSION['usuario_nombre'] ?? '';
   color: var(--cafe-claro);
 }
 
-/* ✅ MENÚ ADMIN DROPDOWN */
+/* ✅ MENÚ ADMIN DROPDOWN - MEJORADO */
 .admin-dropdown {
   position: relative;
 }
 
 .admin-toggle {
-  background: rgba(255, 215, 0, 0.15);
-  border: 2px solid rgba(255, 215, 0, 0.3);
-  color: #f8efe2;
-  padding: 8px 15px;
-  border-radius: 20px;
+  background: rgba(255, 215, 0, 0.2);
+  border: 2px solid rgba(255, 215, 0, 0.4);
+  color: #ffd700;
+  padding: 10px 18px;
+  border-radius: 25px;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   font-weight: 600;
   font-size: 0.95rem;
   transition: all 0.3s ease;
@@ -219,18 +222,23 @@ $usuario_nombre = $_SESSION['usuario_nombre'] ?? '';
 }
 
 .admin-toggle:hover {
-  background: rgba(255, 215, 0, 0.25);
-  border-color: rgba(255, 215, 0, 0.5);
+  background: rgba(255, 215, 0, 0.3);
+  border-color: #ffd700;
   transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3);
 }
 
 .admin-toggle.active {
-  background: rgba(255, 215, 0, 0.3);
+  background: rgba(255, 215, 0, 0.35);
   border-color: #ffd700;
+  box-shadow: 0 5px 15px rgba(255, 215, 0, 0.4);
 }
 
 .dropdown-icon {
   transition: transform 0.3s ease;
+  stroke: #ffd700;
+  width: 14px;
+  height: 14px;
 }
 
 .admin-toggle.active .dropdown-icon {
@@ -286,30 +294,36 @@ $usuario_nombre = $_SESSION['usuario_nombre'] ?? '';
   flex-shrink: 0;
 }
 
-/* 🔍 BUSCADOR */
+/* 🔍 BUSCADOR - MEJORADO */
 .search-container {
   position: relative;
 }
 
 .search-toggle {
-  background: rgba(210, 166, 121, 0.15);
-  border: 2px solid rgba(210, 166, 121, 0.3);
+  background: rgba(210, 166, 121, 0.2);
+  border: 2px solid rgba(210, 166, 121, 0.4);
   color: #f8efe2;
   cursor: pointer;
-  padding: 10px;
+  padding: 12px;
   border-radius: 50%;
   transition: all 0.3s ease;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
+  width: 48px;
+  height: 48px;
+}
+
+.search-toggle svg {
+  width: 20px;
+  height: 20px;
 }
 
 .search-toggle:hover {
-  background: rgba(210, 166, 121, 0.3);
+  background: rgba(210, 166, 121, 0.35);
   border-color: var(--cafe-claro);
   transform: scale(1.05);
+  box-shadow: 0 5px 15px rgba(210, 166, 121, 0.3);
 }
 
 .search-panel {
@@ -393,50 +407,58 @@ $usuario_nombre = $_SESSION['usuario_nombre'] ?? '';
   font-weight: 700;
 }
 
-/* 🛒 CARRITO */
+/* 🛒 CARRITO - MEJORADO */
 .cart-link {
   position: relative;
   color: #f8efe2;
   text-decoration: none;
-  padding: 10px;
+  padding: 12px;
   border-radius: 50%;
   transition: all 0.3s ease;
   display: flex;
   align-items: center;
-  background: rgba(210, 166, 121, 0.15);
-  border: 2px solid rgba(210, 166, 121, 0.3);
-  width: 44px;
-  height: 44px;
   justify-content: center;
+  background: rgba(210, 166, 121, 0.2);
+  border: 2px solid rgba(210, 166, 121, 0.4);
+  width: 48px;
+  height: 48px;
+}
+
+.cart-link svg {
+  width: 22px;
+  height: 22px;
 }
 
 .cart-link:hover {
-  background: rgba(210, 166, 121, 0.3);
+  background: rgba(210, 166, 121, 0.35);
   border-color: var(--cafe-claro);
-  transform: scale(1.1);
+  transform: scale(1.08);
+  box-shadow: 0 5px 15px rgba(210, 166, 121, 0.4);
 }
 
 .cart-badge {
   position: absolute;
-  top: -5px;
-  right: -5px;
+  top: -2px;
+  right: -2px;
   background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
   color: #fff;
   border-radius: 50%;
-  width: 22px;
-  height: 22px;
+  min-width: 20px;
+  height: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 0.7rem;
   font-weight: 700;
   border: 2px solid var(--cafe-oscuro);
+  padding: 0 5px;
   animation: pulse 2s infinite;
+  box-shadow: 0 2px 8px rgba(255, 107, 107, 0.4);
 }
 
 @keyframes pulse {
   0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.1); }
+  50% { transform: scale(1.15); }
 }
 
 /* 👤 USUARIO */
